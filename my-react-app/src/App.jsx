@@ -1,19 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import WhyJoin from './components/WhyJoin';
+import Footer from './components/Footer';
+import StudentLogin from './pages/StudentLogin';
+import AdminLogin from './pages/AdminLogin';
 
 function App() {
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-blue-600 p-8">
-        Hello Tailwind + Vite + React!
-      </h1>
-      <p className="px-8 text-red-700">
-        This is a demonstration of Tailwind CSS working with Vite and React.
-      </p>
-    </div>
-  )
+    <Router>
+      <div className="font-sans">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Hero />
+              <WhyJoin />
+              <Footer />
+            </>
+          } />
+          <Route path="/student-login" element={<StudentLogin />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;
