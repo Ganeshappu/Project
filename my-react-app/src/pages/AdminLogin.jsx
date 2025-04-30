@@ -1,5 +1,3 @@
-import '../styles/theme.css';
-
 const AdminLogin = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-rose-50">
