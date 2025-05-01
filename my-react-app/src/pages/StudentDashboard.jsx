@@ -200,6 +200,7 @@ const StudentDashboard = () => {
   );
 };
 
+
 // Reusable Components
 const StatCard = ({ icon, title, value, trend, color }) => {
   const colors = {
@@ -245,6 +246,7 @@ const DeadlineItem = ({ title, date, daysLeft, progress, course }) => (
     </div>
   </div>
 );
+
 
 const ResourceItem = ({ title, type, duration, progress, icon }) => (
   <div className="p-3 hover:bg-gray-50 rounded-lg transition">
