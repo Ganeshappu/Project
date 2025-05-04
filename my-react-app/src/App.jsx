@@ -6,9 +6,12 @@ import Footer from './components/Footer';
 import StudentLogin from './pages/StudentLogin';
 import AdminLogin from './pages/AdminLogin';
 import StudentDashboard from './pages/StudentDashboard';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <div className="font-sans min-h-screen flex flex-col">
         <Navbar />
@@ -25,13 +28,15 @@ function App() {
             <Route path="/admin-login" element={<AdminLogin />} />
             
             {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
             <Route path="/student-dashboard" element={<StudentDashboard />} />
-            
+            </Route>
           </Routes>
         </main>
         <Footer />
       </div>
     </Router>
+    </AuthProvider>
   );
 }
 
