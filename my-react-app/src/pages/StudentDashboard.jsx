@@ -109,7 +109,7 @@ const StudentDashboard = () => {
     name: "Alex Johnson",
     email: "alex.johnson@university.edu",
     profileImage: null
-  });
+    });
   const profileRef = useRef(null);
 
   // Close dropdown when clicking outside
