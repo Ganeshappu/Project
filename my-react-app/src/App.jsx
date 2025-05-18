@@ -41,6 +41,8 @@ function App() {
               <Route path="/manage-students" element={<ManageStudents />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/announcements" element={<Announcements />} />
+
+              {/* 404 Not Found */}
             </Routes>
           </main>
           <Footer />

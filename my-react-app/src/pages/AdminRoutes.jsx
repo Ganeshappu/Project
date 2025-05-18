@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminDashboard from "./AdminDashboard";
-//import DashboardHome from "./DashboardHome";
+import DashboardHome from "./DashboardHome";
 import ManageStudents from "./ManageStudents";
 import Schedule from "./Schedule";
 import Announcements from "./Announcements";
