@@ -1,16 +1,65 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import {
+  FiHome,
+  FiUsers,
+  FiCalendar,
+  FiBell,
+  FiFileText,
+  FiChevronRight
+} from "react-icons/fi";
 
 const Sidebar = () => {
+  const location = useLocation();
+  
+  const navItems = [
+    { path: "/admin-dashboard", label: "Dashboard", icon: <FiHome /> },
+    { path: "/manage-students", label: "Manage Students", icon: <FiUsers /> },
+    { path: "/schedule", label: "Schedule", icon: <FiCalendar /> },
+    { path: "/announcements", label: "Announcements", icon: <FiBell /> },
+    { path: "/generate-certificate", label: "Generate Certificate", icon: <FiFileText /> },
+  ];
+
   return (
-    <aside className="w-64 bg-gray-800 text-white h-screen p-4 space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
-      <nav className="flex flex-col space-y-2">
-        <Link to="/admin-dashboard" className="hover:text-yellow-400">Dashboard</Link>
-        <Link to="/manage-students" className="hover:text-yellow-400">Manage Students</Link>
-        <Link to="/schedule" className="hover:text-yellow-400">Schedule</Link>
-        <Link to="/announcements" className="hover:text-yellow-400">Announcements</Link>
-        
+    <aside className="w-59 h-[91vh] bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col">
+      <div className="p-5 pb-5">
+        <h2 className="text-2xl font-bold flex items-center">
+          <span className="bg-blue-500 rounded-lg p-2 mr-3">
+            <FiHome size={20} />
+          </span>
+          Admin Panel
+        </h2>
+      </div>
+      
+      <nav className="flex-1 px-4 space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex items-center justify-between p-3 rounded-lg transition-all 
+              ${location.pathname === item.path 
+                ? "bg-blue-600/20 text-blue-400 border-l-4 border-blue-400" 
+                : "hover:bg-gray-700/50 hover:pl-5"}`}
+          >
+            <div className="flex items-center">
+              <span className="mr-3 text-lg">{item.icon}</span>
+              {item.label}
+            </div>
+            <FiChevronRight className="opacity-0 group-hover:opacity-100" />
+          </Link>
+        ))}
       </nav>
+      
+      <div className="p-4 border-t border-gray-700">
+        <div className="flex items-center">
+          <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center mr-3">
+            <span className="text-lg">A</span>
+          </div>
+          <div>
+            <p className="font-medium">Admin User</p>
+            <p className="text-xs text-gray-400">admin@example.com</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 };

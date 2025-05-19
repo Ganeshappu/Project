@@ -2,7 +2,7 @@
 import Sidebar from "../components/Sidebar";   // Check if Sidebar.jsx exists inside components folder
 import Topbar from "../components/Topbar";     // Check if Topbar.jsx exists inside components folder
 import { Outlet } from "react-router-dom";    
-
+import CertificateGenerator from '../components/CertificateGenerator'; // Check if CertificateGenerator.jsx exists inside components folder
 const AdminDashboard = () => {
   return (
     <div className="flex">
@@ -13,6 +13,14 @@ const AdminDashboard = () => {
           <Outlet />
         </main>
       </div>
+    </div>
+  );
+};
+const AdminPage = () => {
+  return (
+    <div className="p-6">
+      {/* Your existing admin controls here */}
+      <CertificateGenerator />
     </div>
   );
 };

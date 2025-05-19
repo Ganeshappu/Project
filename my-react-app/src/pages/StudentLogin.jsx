@@ -130,7 +130,7 @@ const StudentLogin = () => {
                 <input 
                   type="text" 
                   name="name"
-                  placeholder="John Doe" 
+                  placeholder="" 
                   className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   value={credentials.name}
                   onChange={handleInputChange}

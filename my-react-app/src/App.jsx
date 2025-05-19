@@ -12,7 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ManageStudents from './pages/ManageStudents';
 import Schedule from './pages/Schedule';
 import Announcements from './pages/Announcements';
-
+import CertificateGenerator from './components/CertificateGenerator'; // New import for the certificate generator
 function App() {
   return (
     <AuthProvider>
@@ -41,7 +41,7 @@ function App() {
               <Route path="/manage-students" element={<ManageStudents />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/announcements" element={<Announcements />} />
-
+              <Route path="/generate-certificate" element={<CertificateGenerator />} /> {/* New route for certificate generator */}
               {/* 404 Not Found */}
             </Routes>
           </main>

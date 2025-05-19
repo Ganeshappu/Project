@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 const HomeHero = () => {
   return (
-    <section className="bg-gray-50 text-center py-16 px-6 pb-12"> {/* Changed py-16 to pb-12 */}
+    <section className="bg-gray-50 text-center py-16 px-6 pb-12">
       <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
         Build. Learn. Lead.
       </h1>
@@ -8,9 +9,11 @@ const HomeHero = () => {
         Empowering students through code, collaboration, and real-world projects.
       </p>
       <div className="flex justify-center gap-4">
-        <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300">
-          Join Us
-        </button>
+        <Link to="/student-login"> {/* Use Link component */}
+          <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300">
+            Join Us
+          </button>
+        </Link>
       </div>
     </section>
   );
