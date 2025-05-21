@@ -84,94 +84,8 @@ const AchievementItem = ({ title, description, date, badgeColor }) => (
   </div>
 );
 
-const NotificationCard = ({ type, title, content, time }) => {
-  const typeStyles = {
-    academic: 'bg-blue-50 text-blue-800',
-    event: 'bg-purple-50 text-purple-800',
-    system: 'bg-gray-100 text-gray-800'
-  };
-
-  return (
-    <div className="p-4 border border-gray-100 rounded-lg hover:shadow-sm transition">
-      <span className={`text-xs px-2 py-1 rounded-full ${typeStyles[type]}`}>
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-      </span>
-      <h3 className="font-medium mt-2">{title}</h3>
-      <p className="text-sm text-gray-600 mt-1">{content}</p>
-      <p className="text-xs text-gray-400 mt-2">{time}</p>
-    </div>
-  );
-};
-
-// Main Component
-const StudentDashboard = () => {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
-  const [studentData, setStudentData] = useState({
-    name: "Alex Johnson",
-    email: "alex.johnson@university.edu",
-    profileImage: null
-  });
-  const profileRef = useRef(null);
-  // ... (keep all your existing state and refs)
-  const [notifications, setNotifications] = useState([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(true);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoadingNotifications(true);
-
-        // Create a query against the notifications collection
-        const q = query(
-          collection(db, 'notifications'),
-          where('recipientType', '==', 'all'), // Or use 'userId' if you have user-specific notifications
-          orderBy('createdAt', 'desc'), // Newest first
-          limit(10) // Limit to 10 most recent
-        );
-
-        const querySnapshot = await getDocs(q);
-        const fetchedNotifications = [];
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedNotifications.push({
-            id: doc.id,
-            title: data.title,
-            message: data.message,
-            type: data.priority || 'medium', // Using priority as type
-            time: formatFirestoreTimestamp(data.createdAt),
-            status: data.status || 'unread'
-          });
-        });
-
-        setNotifications(fetchedNotifications);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      } finally {
-        setLoadingNotifications(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  // Helper function to format Firestore timestamp
-  const formatFirestoreTimestamp = (timestamp) => {
-    if (!timestamp?.toDate) return "Just now";
-
-    const now = new Date();
-    const notificationDate = timestamp.toDate();
-    const diffInSeconds = Math.floor((now - notificationDate) / 1000);
-
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  };
-
-  // Update NotificationCard component to match your data
-  const NotificationCard = ({ type, title, message, time, status }) => {
+// Notification Card Component - FIXED: moved up to avoid duplication
+const NotificationCard = ({ type, title, message, time, status }) => {
   const typeStyles = {
     high: {
       bg: 'bg-red-50',
@@ -208,8 +122,98 @@ const StudentDashboard = () => {
   );
 };
 
+// Main Component
+const StudentDashboard = () => {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  const [studentData, setStudentData] = useState({
+    name: "Alex Johnson",
+    email: "alex.johnson@university.edu",
+    profileImage: null,
+    role: "Student" // Added role to avoid undefined
+  });
+  const profileRef = useRef(null);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
 
+  // FIXED: Improved notification fetching
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoadingNotifications(true);
+        console.log("Fetching notifications...");
 
+        // Create a query against the notifications collection
+        // FIXED: Made query more flexible to catch more notifications
+        const q = query(
+          collection(db, 'notifications'),
+          orderBy('createdAt', 'desc'), // Newest first
+          limit(10) // Limit to 10 most recent
+        );
+
+        const querySnapshot = await getDocs(q);
+        const fetchedNotifications = [];
+        
+        console.log("Notifications query returned:", querySnapshot.size, "documents");
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log("Notification document:", doc.id, data);
+          
+          fetchedNotifications.push({
+            id: doc.id,
+            title: data.title || 'Notification',
+            message: data.message || data.content || data.description || '',
+            type: data.priority || data.type || 'medium',
+            time: formatFirestoreTimestamp(data.createdAt),
+            status: data.status || 'unread'
+          });
+        });
+
+        console.log("Processed notifications:", fetchedNotifications);
+        setNotifications(fetchedNotifications);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  // FIXED: Improved timestamp handling
+  const formatFirestoreTimestamp = (timestamp) => {
+    if (!timestamp) return "Just now";
+    
+    let date;
+    try {
+      // Handle both Firestore Timestamp objects and serialized timestamps
+      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+      } else if (timestamp.seconds) {
+        // Handle serialized Firestore timestamp
+        date = new Date(timestamp.seconds * 1000);
+      } else if (timestamp instanceof Date) {
+        date = timestamp;
+      } else if (typeof timestamp === 'string') {
+        date = new Date(timestamp);
+      } else {
+        return "Unknown time";
+      }
+      
+      const now = new Date();
+      const diffInSeconds = Math.floor((now - date) / 1000);
+
+      if (diffInSeconds < 60) return "Just now";
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    } catch (error) {
+      console.error("Error formatting timestamp:", error, timestamp);
+      return "Unknown time";
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -438,6 +442,43 @@ const StudentDashboard = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Notifications Panel - MOVED TO TOP */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-rose-500" />
+                Announcements
+                {loadingNotifications && (
+                  <span className="text-sm text-gray-500 ml-2">Loading...</span>
+                )}
+              </h2>
+              <button className="text-sm text-rose-600 hover:text-rose-800 flex items-center">
+                Mark all as read <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {notifications.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {notifications.map((notification) => (
+                  <NotificationCard
+                    key={notification.id}
+                    type={notification.type}
+                    title={notification.title}
+                    message={notification.message}
+                    time={notification.time}
+                    status={notification.status}
+                  />
+                ))}
+              </div>
+            ) : (
+              !loadingNotifications && (
+                <div className="text-center py-8 text-gray-500">
+                  No notifications found. Check your database structure or connection.
+                </div>
+              )
+            )}
+          </div>
+          
           {/* Upcoming Deadlines */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
@@ -541,43 +582,6 @@ const StudentDashboard = () => {
                 badgeColor="bg-green-100 text-green-800"
               />
             </div>
-          </div>
-
-          {/* Notifications Panel */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-rose-500" />
-                Announcments
-                {loadingNotifications && (
-                  <span className="text-sm text-gray-500">Loading...</span>
-                )}
-              </h2>
-              <button className="text-sm text-rose-600 hover:text-rose-800 flex items-center">
-                Mark all as read <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {notifications.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {notifications.map((notification) => (
-                  <NotificationCard
-                    key={notification.id}
-                    type={notification.type}
-                    title={notification.title}
-                    message={notification.message}
-                    time={notification.time}
-                    status={notification.status}
-                  />
-                ))}
-              </div>
-            ) : (
-              !loadingNotifications && (
-                <div className="text-center py-8 text-gray-500">
-                  No notifications found
-                </div>
-              )
-            )}
           </div>
         </div>
       </div>
