@@ -13,7 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ManageStudents from './pages/ManageStudents';
 import Schedule from './pages/Schedule';
 import Announcements from './pages/Announcements';
-import CertificateGenerator from './components/CertificateGenerator'; // New import for the certificate generator
+import CertificateGenerator from './components/CertificateGenerator'; 
 import Feedback from './pages/Feedback'; // New import for the feedback page
 function App() {
   return (
@@ -33,7 +33,8 @@ function App() {
               } />
               <Route path="/student-login" element={<StudentLogin />} />
               <Route path="/admin-login" element={<AdminLogin />} />
-
+              <Route path="/feeback" element={<Feedback />} />
+              <Route path="/certificate-generator" element={<CertificateGenerator />} /> {/* New route for certificate generator */}
               {/* Protected student dashboard */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/student-dashboard" element={<StudentDashboard />} />

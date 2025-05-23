@@ -11,7 +11,7 @@ import {
   TrendingUp, TrendingDown, Minus
 } from 'lucide-react';
 
-const AdminDashboard= () => {
+const AdminDashboar= () => {
   return (
     <div className="flex">
       <Sidebar />
@@ -32,7 +32,7 @@ const AdminPage = () => {
     </div>
   );
 };
-const AdminDashboar = () => {
+const AdminDashboard = () => {
   const [expandedSection, setExpandedSection] = useState(null);
 
   const toggleSection = (section) => {
