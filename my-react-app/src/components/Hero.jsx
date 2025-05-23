@@ -1,20 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Code, Users, BookOpen, ArrowRight, Rocket } from 'lucide-react';
+
 const HomeHero = () => {
   return (
-    <section className="bg-gray-50 text-center py-16 px-6 pb-12">
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-        Build. Learn. Lead.
-      </h1>
-      <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-        Empowering students through code, collaboration, and real-world projects.
-      </p>
-      <div className="flex justify-center gap-4">
-        <Link to="/student-login"> {/* Use Link component */}
-          <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300">
-            Join Us
-          </button>
-        </Link>
-      </div>
+    <section className="bg-gradient-to-br from-gray-900 to-blue-800 text-white py-20 px-6">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* Main Hero Content */}
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+          Build. Learn. Lead.
+        </h1>
+        
+        <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+          Empowering the next generation of developers through innovative projects, 
+          collaborative learning, and industry-leading mentorship programs.
+        </p>
+        </div>
+      
     </section>
   );
 };

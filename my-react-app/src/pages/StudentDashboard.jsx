@@ -316,14 +316,36 @@ const StudentDashboard = () => {
                       </button>
                     </div>
                     <div className="border-t border-gray-100 p-2">
-                      <button
-                        onClick={handleSignOut} // This connects the button to the handler
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Sign out
-                      </button>
-                    </div>
+  <button
+    onClick={handleSignOut}
+    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+  >
+    <LogOut className="w-4 h-4" />
+    Sign out
+  </button>
+
+  <button
+    onClick={() => window.location.href = "/feedback"}
+    className="w-full flex items-center gap-2 px-4 py-2 mt-1 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M7 8h10M7 12h6m-6 4h8M5 21l2-2h10l2 2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16z"
+      />
+    </svg>
+    Feedback
+  </button>
+</div>
+
                   </>
                 ) : (
                   <div className="p-4">

@@ -32,7 +32,7 @@ const AdminPage = () => {
     </div>
   );
 };
-const AdminDash = () => {
+const AdminDashboar = () => {
   const [expandedSection, setExpandedSection] = useState(null);
 
   const toggleSection = (section) => {

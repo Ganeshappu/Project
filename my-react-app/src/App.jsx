@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import WhyJoin from './components/WhyJoin';
 import Footer from './components/Footer';
+import content from './components/content';
 import StudentLogin from './pages/StudentLogin';
 import AdminLogin from './pages/AdminLogin';
 import StudentDashboard from './pages/StudentDashboard';
@@ -27,6 +28,7 @@ function App() {
                 <>
                   <Hero />
                   <WhyJoin />
+                  <content />
                 </>
               } />
               <Route path="/student-login" element={<StudentLogin />} />

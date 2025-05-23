@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../Firebase/firebase.jsx";
-import { FiSend, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { db, auth } from "../Firebase/firebase.jsx"; // Added auth import
+import { FiSend, FiCheckCircle, FiAlertCircle, FiStar } from "react-icons/fi";
 
 const StudentFeedbackForm = () => {
   const [formData, setFormData] = useState({
@@ -48,15 +48,20 @@ const StudentFeedbackForm = () => {
     }
 
     setLoading(true);
+    setMessage({ text: "", type: "" });
 
     try {
       await addDoc(collection(db, "feedbacks"), {
         ...formData,
+        userId: auth.currentUser?.uid || "anonymous",
+        userEmail: auth.currentUser?.email || formData.email,
         createdAt: serverTimestamp(),
-        status: "new", // for admin to track feedback status
+        status: "new",
+        archived: false,
       });
+
       setMessage({
-        text: "Feedback submitted successfully!",
+        text: "Thank you for your valuable feedback!",
         type: "success",
       });
       setFormData({
@@ -66,82 +71,86 @@ const StudentFeedbackForm = () => {
         rating: 0,
         feedback: "",
       });
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setMessage({ text: "", type: "" });
+      }, 5000);
     } catch (error) {
+      console.error("Error submitting feedback:", error);
       setMessage({
-        text: "Error submitting feedback. Please try again.",
+        text: error.message || "Error submitting feedback. Please try again.",
         type: "error",
       });
-      console.error("Error submitting feedback:", error);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl shadow-lg">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          Share Your Feedback
+          Course Feedback
         </h2>
         <p className="text-gray-600">
-          Your opinion helps us improve our services
+          We appreciate your input to improve our programs
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Name Field */}
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Your Name (Optional)
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Your Name
+              <span className="text-gray-400 ml-1">(optional)</span>
             </label>
             <input
               type="text"
-              id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="John Doe"
+              maxLength="50"
             />
           </div>
 
+          {/* Email Field */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Email (Optional)
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+              <span className="text-gray-400 ml-1">
+                {auth.currentUser ? "(logged in)" : "(optional)"}
+              </span>
             </label>
             <input
               type="email"
-              id="email"
               name="email"
-              value={formData.email}
+              value={auth.currentUser?.email || formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                auth.currentUser ? "bg-gray-100" : ""
+              }`}
               placeholder="your@email.com"
+              disabled={!!auth.currentUser}
             />
           </div>
 
+          {/* Course Selection */}
           <div>
-            <label
-              htmlFor="course"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Course/Subject
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Course/Subject<span className="text-red-500 ml-1">*</span>
             </label>
             <select
-              id="course"
               name="course"
               value={formData.course}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               required
             >
-              <option value="">Select a course</option>
+              <option value="">Select your course</option>
               {courses.map((course) => (
                 <option key={course} value={course}>
                   {course}
@@ -150,56 +159,70 @@ const StudentFeedbackForm = () => {
             </select>
           </div>
 
+          {/* Rating System */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rating
+              Rating<span className="text-red-500 ml-1">*</span>
             </label>
-            <div className="flex space-x-2">
+            <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => handleRatingChange(star)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition ${
+                  className={`p-2 rounded-md flex items-center justify-center transition-all ${
                     formData.rating >= star
-                      ? "bg-yellow-400 text-white"
-                      : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                      ? "bg-yellow-100 text-yellow-500"
+                      : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                   }`}
+                  aria-label={`Rate ${star} star`}
                 >
-                  {star}
+                  <FiStar
+                    className={`w-5 h-5 ${
+                      formData.rating >= star ? "fill-current" : ""
+                    }`}
+                  />
                 </button>
               ))}
+              <span className="ml-2 text-gray-600 self-center">
+                {formData.rating > 0 && `${formData.rating}/5`}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* Feedback Textarea */}
         <div>
-          <label
-            htmlFor="feedback"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Your Feedback*
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Detailed Feedback<span className="text-red-500 ml-1">*</span>
           </label>
           <textarea
-            id="feedback"
             name="feedback"
             rows={5}
             value={formData.feedback}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-            placeholder="Please share your thoughts, suggestions, or concerns..."
+            placeholder="What did you like? What can we improve?"
             required
+            minLength="20"
+            maxLength="1000"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Minimum 20 characters (about {Math.ceil(20 - formData.feedback.length)} more needed)
+          </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Submit Button and Status Message */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <button
             type="submit"
-            disabled={loading}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-70 flex items-center"
+            disabled={loading || formData.feedback.length < 5 || !formData.course || !formData.rating}
+            className={`px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center min-w-[200px] justify-center ${
+              loading ? "opacity-90" : ""
+            }`}
           >
             {loading ? (
-              "Submitting..."
+              <span className="inline-block animate-pulse">Processing...</span>
             ) : (
               <>
                 <FiSend className="mr-2" />
@@ -210,16 +233,20 @@ const StudentFeedbackForm = () => {
 
           {message.text && (
             <div
-              className={`flex items-center ${
-                message.type === "success" ? "text-green-600" : "text-red-600"
+              className={`flex-1 max-w-md p-3 rounded-lg ${
+                message.type === "success"
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
               }`}
             >
-              {message.type === "success" ? (
-                <FiCheckCircle className="mr-2" />
-              ) : (
-                <FiAlertCircle className="mr-2" />
-              )}
-              <span>{message.text}</span>
+              <div className="flex items-center">
+                {message.type === "success" ? (
+                  <FiCheckCircle className="mr-2 flex-shrink-0" />
+                ) : (
+                  <FiAlertCircle className="mr-2 flex-shrink-0" />
+                )}
+                <span>{message.text}</span>
+              </div>
             </div>
           )}
         </div>
