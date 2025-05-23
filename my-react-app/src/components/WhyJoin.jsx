@@ -331,7 +331,7 @@ const StudentClubPage = () => {
     and creating lasting professional networks through Student Club.
   </p>
   <a 
-    href="/student-login" // Replace with your actual signup route
+    href="student-login" // Replace with your actual signup route
     className="inline-block bg-white text-blue-600 font-semibold py-3 px-12 rounded-lg hover:bg-gray-100 transition duration-300"
   >
     Join Now
