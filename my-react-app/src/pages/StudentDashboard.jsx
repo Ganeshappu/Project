@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut } from "lucide-react";
+import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut,MessageSquare } from "lucide-react";
 import { db } from '../Firebase/firebase.jsx'; // Your Firebase config file
 import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 
@@ -325,8 +325,9 @@ const StudentDashboard = () => {
   </button>
   <a 
     href="/feedback" // Replace with your actual signup route
-    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-  >feeback</a>
+    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+<MessageSquare className="w-4 h-4" />
+  Feedback</a>
 </div>
 
                   </>

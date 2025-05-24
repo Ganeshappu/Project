@@ -1,17 +1,21 @@
 // pages/AdminDashboard.jsx
-import Sidebar from "../components/Sidebar";   // Check if Sidebar.jsx exists inside components folder
-import Topbar from "../components/Topbar";     // Check if Topbar.jsx exists inside components folder
-import { Outlet } from "react-router-dom";    
-import CertificateGenerator from '../components/CertificateGenerator'; // Check if CertificateGenerator.jsx exists inside components folder
-import { useState } from 'react';
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import { Outlet } from "react-router-dom";
+import CertificateGenerator from '../components/CertificateGenerator';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Users, Activity, Mail, Lock, FileText, Calendar, 
   Plus, Send, FileBarChart, Target, Shield, ClipboardList,
   MessageSquare, AlertCircle, CheckCircle, ChevronDown, ChevronUp,
-  TrendingUp, TrendingDown, Minus
+  TrendingUp, TrendingDown, Minus, Loader2
 } from 'lucide-react';
 
-const AdminDashboar= () => {
+// Import Firebase functions
+import { db } from '../Firebase/firebase'; // Adjust path as needed
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+
+const AdminDashboard = () => {
   return (
     <div className="flex">
       <Sidebar />
@@ -24,22 +28,101 @@ const AdminDashboar= () => {
     </div>
   );
 };
-const AdminPage = () => {
-  return (
-    <div className="p-6">
-      {/* Your existing admin controls here */}
-      <CertificateGenerator />
-    </div>
-  );
-};
-const AdminDashboard = () => {
+
+const AdminDashboar = () => {
+  const profileRef = useRef(null);
   const [expandedSection, setExpandedSection] = useState(null);
+  const [feedback, setFeedback] = useState([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(true);
+  const [error, setError] = useState(null);
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-  // Sample data
+  // Helper function to format Firestore timestamp
+  const formatFirestoreTimestamp = (timestamp) => {
+    if (!timestamp) return 'Unknown date';
+    
+    try {
+      // Handle Firestore Timestamp
+      if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toLocaleDateString();
+      }
+      
+      // Handle regular Date object
+      if (timestamp instanceof Date) {
+        return timestamp.toLocaleDateString();
+      }
+      
+      // Handle timestamp in milliseconds
+      if (typeof timestamp === 'number') {
+        return new Date(timestamp).toLocaleDateString();
+      }
+      
+      // Handle string dates
+      if (typeof timestamp === 'string') {
+        return new Date(timestamp).toLocaleDateString();
+      }
+      
+      return 'Unknown date';
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return 'Unknown date';
+    }
+  };
+
+  // FIXED: Improved feedback fetching using Firebase
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        setLoadingFeedback(true);
+        setError(null);
+        console.log("Fetching feedback...");
+
+        // Create a query against the feedback collection
+        // FIXED: Made query more flexible to catch more feedback
+        const q = query(
+          collection(db, 'feedback'), // Adjust collection name as needed
+          orderBy('createdAt', 'desc'), // Newest first
+          limit(10) // Limit to 10 most recent feedback
+        );
+
+        const querySnapshot = await getDocs(q);
+        const fetchedFeedback = [];
+        
+        console.log("Feedback query returned:", querySnapshot.size, "documents");
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log("Feedback document:", doc.id, data);
+          
+          fetchedFeedback.push({
+            id: doc.id,
+            message: data.message || data.feedback || data.comment || data.content || '',
+            userName: data.userName || data.name || data.user || 'Anonymous',
+            userEmail: data.userEmail || data.email || '',
+            rating: data.rating || null,
+            type: data.type || 'general',
+            createdAt: formatFirestoreTimestamp(data.createdAt || data.timestamp),
+            status: data.status || 'unread'
+          });
+        });
+
+        console.log("Processed feedback:", fetchedFeedback);
+        setFeedback(fetchedFeedback);
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+        setError("Failed to load feedback. Please try again later.");
+      } finally {
+        setLoadingFeedback(false);
+      }
+    };
+
+    fetchFeedback();
+  }, []);
+
+  // Sample data (other sections remain the same)
   const metrics = [
     { name: 'Total Users', value: '1,250', change: '5.4%', trend: 'up' },
     { name: 'New Signups Today', value: '24', change: '12%', trend: 'up' },
@@ -66,11 +149,6 @@ const AdminDashboard = () => {
     { name: 'Send Announcement', icon: <Send size={18} /> },
     { name: 'Generate Report', icon: <FileBarChart size={18} /> },
     { name: 'Set Weekly Goal', icon: <Target size={18} /> }
-  ];
-
-  const feedback = [
-    { text: 'Loving the new dashboard look! It\'s much more organized.', user: 'Sneha P.', date: 'May 19, 2025' },
-    { text: 'It would be great to have a bulk user approval feature.', user: 'Rahul D.', date: 'May 18, 2025' }
   ];
 
   const tasks = [
@@ -100,7 +178,27 @@ const AdminDashboard = () => {
       default: return <span className={`${baseClasses} bg-gray-100`}>{status}</span>;
     }
   };
+
+  // Helper function to render star rating
+  const renderStarRating = (rating) => {
+    if (!rating) return null;
+    
     return (
+      <div className="flex items-center mt-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`text-sm ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+          >
+            ⭐
+          </span>
+        ))}
+        <span className="text-xs text-gray-500 ml-1">({rating}/5)</span>
+      </div>
+    );
+  };
+
+  return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
@@ -245,7 +343,7 @@ const AdminDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Feedback */}
+        {/* Recent Feedback - Updated with Firebase fetching */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold flex items-center text-gray-800">
@@ -261,12 +359,45 @@ const AdminDashboard = () => {
           
           {expandedSection !== 'feedback' && (
             <div className="space-y-4">
-              {feedback.map((item, index) => (
-                <div key={index} className="pb-3 border-b border-gray-100 last:border-0">
-                  <p className="text-gray-700 italic">"{item.text}"</p>
-                  <p className="text-sm text-gray-500 mt-1">— {item.user}, {item.date}</p>
+              {loadingFeedback ? (
+                <div className="flex justify-center items-center py-8">
+                  <Loader2 className="animate-spin h-6 w-6 text-blue-500" />
+                  <span className="ml-2 text-gray-500">Loading feedback...</span>
                 </div>
-              ))}
+              ) : error ? (
+                <div className="flex items-center justify-center py-8 text-red-500">
+                  <AlertCircle className="mr-2" size={16} />
+                  <span>{error}</span>
+                </div>
+              ) : feedback.length > 0 ? (
+                feedback.map((item, index) => (
+                  <div key={item.id || index} className="pb-4 border-b border-gray-100 last:border-0">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="text-gray-700 italic mb-1">"{item.message}"</p>
+                        {item.rating && renderStarRating(item.rating)}
+                      </div>
+                      {item.type && (
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full ml-2">
+                          {item.type}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>— {item.userName}</span>
+                      <span>{item.createdAt}</span>
+                    </div>
+                    {item.userEmail && (
+                      <p className="text-xs text-gray-400 mt-1">{item.userEmail}</p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center py-8 text-gray-500">
+                  <MessageSquare className="mr-2" size={20} />
+                  <span>No feedback received yet</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -313,8 +444,6 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
-  
 };
 
 export default AdminDashboard;
-

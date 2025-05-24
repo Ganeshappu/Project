@@ -5,19 +5,24 @@ import {
   FiCalendar,
   FiBell,
   FiFileText,
-  FiChevronRight
+  FiChevronRight,
+  FiAward, // Use this for CertiForge
+  FiMail    // Use this for MailMint
 } from "react-icons/fi";
+
 
 const Sidebar = () => {
   const location = useLocation();
   
   const navItems = [
-    { path: "/admin-dashboard", label: "Dashboard", icon: <FiHome /> },
-    { path: "/manage-students", label: "Manage Students", icon: <FiUsers /> },
-    { path: "/schedule", label: "Schedule", icon: <FiCalendar /> },
-    { path: "/announcements", label: "Announcements", icon: <FiBell /> },
-    { path: "/generate-certificate", label: "Generate Certificate", icon: <FiFileText /> },
-  ];
+  { path: "/admin-dashboard", label: "Dashboard", icon: <FiHome /> },
+  { path: "/manage-students", label: "Manage Students", icon: <FiUsers /> },
+  { path: "/schedule", label: "Schedule", icon: <FiCalendar /> },
+  { path: "/announcements", label: "Announcements", icon: <FiBell /> },
+  { path: "/generate-certificate", label: "Certificate Generator", icon: <FiAward /> },
+  { path: "/email-Generator", label: "Mail Generator", icon: <FiMail /> },
+];
+
 
   return (
     <aside className="w-59 h-[91vh] bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col">
