@@ -15,21 +15,21 @@ import {
 import { db } from '../Firebase/firebase'; // Adjust path as needed
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
-const AdminDashboard = () => {
+const AdminDashboardLayout = () => {
   return (
     <div className="flex">
       <Sidebar />
       <div className="flex-1 min-h-screen bg-gray-100">
         <Topbar />
         <main className="p-6">
-          <Outlet />
+          <AdminDashboard />
         </main>
       </div>
     </div>
   );
 };
 
-const AdminDashboar = () => {
+const AdminDashboard = () => {
   const profileRef = useRef(null);
   const [expandedSection, setExpandedSection] = useState(null);
   const [feedback, setFeedback] = useState([]);
@@ -446,4 +446,4 @@ const AdminDashboar = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboardLayout;
