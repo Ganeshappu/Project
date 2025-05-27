@@ -140,16 +140,14 @@ const StudentFeedbackForm = () => {
             minLength="20"
             maxLength="1000"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Minimum 20 characters (about {Math.max(0, 20 - formData.feedback.length)} more needed)
-          </p>
+          
         </div>
 
         {/* Submit Button and Status Message */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <button
             type="submit"
-            disabled={loading || formData.feedback.length < 20 || !formData.email}
+            disabled={loading || formData.feedback.length < 5 || !formData.email}
             className={`px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center min-w-[200px] justify-center ${
               loading ? "opacity-90" : ""
             }`}

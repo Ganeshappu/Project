@@ -293,7 +293,7 @@ const StudentClubPage = () => {
       </section>
 
       {/* Why Join Section */}
-      <section className="py-4 px-6 bg-white-50 rounded-xl mb-16" id="why-join">
+      <section className="py-1 px-6 bg-white-50 rounded-xl mb-16" id="why-join">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Choose Student Club?</h2>
@@ -324,19 +324,73 @@ const StudentClubPage = () => {
       </section>
 
       {/* Final CTA */}
-      <div className="text-center bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-12 text-white">
+<div className="text-center bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-12 text-white">
   <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Student Experience?</h2>
   <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
     Join thousands of students who are already leveraging exclusive opportunities, building valuable skills,
     and creating lasting professional networks through Student Club.
   </p>
   <a 
-    href="/student-login" // Replace with your actual signup route
+    href="/student-login"
     className="inline-block bg-white text-blue-600 font-semibold py-3 px-12 rounded-lg hover:bg-gray-100 transition duration-300"
   >
     Join Now
   </a>
 </div>
+
+{/* Contact Us Section */}
+<div className="mt-16 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+  <div className="grid md:grid-cols-2">
+    {/* Contact Information */}
+    <div className="p-8 md:p-12 bg-gray-50">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Contact Student Club</h2>
+      
+      <div className="space-y-6">
+        <div className="flex items-start">
+          <div className="bg-blue-100 p-2 rounded-full mr-4">
+            <BookOpen className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">General Inquiries</h3>
+            <a href="mailto:info@studentclub.com" className="text-blue-600 hover:underline">
+              info@studentclub.com
+            </a>
+          </div>
+        </div>
+        
+        <div className="flex items-start">
+          <div className="bg-green-100 p-2 rounded-full mr-4">
+            <Headphones className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">Support</h3>
+            <a href="mailto:support@studentclub.com" className="text-blue-600 hover:underline">
+              support@studentclub.com
+            </a>
+          </div>
+        </div>
+        
+        <div className="flex items-start">
+          <div className="bg-purple-100 p-2 rounded-full mr-4">
+            <MapPin className="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">Campus Location</h3>
+            <p className="text-gray-600">Student Center, Room 101</p>
+            <p className="text-gray-600">Education City, Doha</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Image Section (Replace Contact Form) */}
+    <div className="p-8 md:p-7 flex justify-center items-center">
+      {/* Replace this with your image */}
+      <img src="https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29sbGVnZSUyMGNhbXB1c3xlbnwwfHwwfHx8MA%3D%3D" alt="Contact Us Image" className="max-w-full h-auto rounded-xl" />
+    </div>
+  </div>
+</div>
+
     </div>
   );
 };

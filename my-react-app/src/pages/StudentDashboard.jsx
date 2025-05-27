@@ -2,6 +2,54 @@ import { useState, useRef, useEffect } from 'react';
 import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut,MessageSquare } from "lucide-react";
 import { db } from '../Firebase/firebase.jsx'; // Your Firebase config file
 import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { FiDownload } from "react-icons/fi";
+
+const StudentDocumentList = () => {
+  const [documents, setDocuments] = useState([]);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      const docsRef = collection(db, "documents");
+      const snapshot = await getDocs(docsRef);
+      const docsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setDocuments(docsData);
+    };
+
+    fetchDocuments();
+  }, []);
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg">
+      <h2 className="text-2xl font-bold mb-4">Available Documents</h2>
+      <ul className="space-y-3">
+        {documents.map((doc) => (
+          <li
+            key={doc.id}
+            className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between"
+          >
+            <div>
+              <p className="font-medium">{doc.title}</p>
+              <span className="text-sm text-gray-500">{doc.fileName}</span>
+            </div>
+            <a
+              href={doc.fileURL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-blue-600 hover:underline"
+            >
+              <FiDownload className="mr-1" /> Download
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+
 
 // Reusable Components (define these first)
 const StatCard = ({ icon, title, value, trend, color }) => {
