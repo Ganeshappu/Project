@@ -1,4 +1,4 @@
-// pages/AdminDashboard.jsx
+
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { Outlet } from "react-router-dom";
@@ -6,14 +6,14 @@ import CertificateGenerator from '../components/CertificateGenerator';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Users, Activity, Mail, Lock, FileText, Calendar, 
-  Plus, Send, FileBarChart, Target, Shield, ClipboardList,
+  Plus, Send, FileBarChart, Target, Shield, Megaphone, Award, ClipboardList,
   MessageSquare, AlertCircle, CheckCircle, ChevronDown, ChevronUp,
-  TrendingUp, TrendingDown, Minus, Loader2
-} from 'lucide-react';
+  TrendingUp, TrendingDown, Minus, Loader2, User} from 'lucide-react';
 
 // Import Firebase functions
 import { db } from '../Firebase/firebase'; // Adjust path as needed
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { startOfToday, endOfToday } from 'date-fns';
 
 const AdminDashboardLayout = () => {
   return (
@@ -35,6 +35,10 @@ const AdminDashboard = () => {
   const [feedback, setFeedback] = useState([]);
   const [loadingFeedback, setLoadingFeedback] = useState(true);
   const [error, setError] = useState(null);
+  const [userCount, setUserCount] = useState(0);
+  const [loadingUserCount, setLoadingUserCount] = useState(true);
+  const [todayLogins, setTodayLogins] = useState(0);
+  const [loadingTodayLogins, setLoadingTodayLogins] = useState(true);
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -72,7 +76,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // FIXED: Improved feedback fetching using Firebase
+  // Fetch feedback
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
@@ -80,12 +84,10 @@ const AdminDashboard = () => {
         setError(null);
         console.log("Fetching feedback...");
 
-        // Create a query against the feedback collection
-        // FIXED: Made query more flexible to catch more feedback
         const q = query(
-          collection(db, 'feedback'), // Adjust collection name as needed
-          orderBy('createdAt', 'desc'), // Newest first
-          limit(10) // Limit to 10 most recent feedback
+          collection(db, 'feedback'),
+          orderBy('createdAt', 'desc'),
+          limit(3)
         );
 
         const querySnapshot = await getDocs(q);
@@ -121,14 +123,71 @@ const AdminDashboard = () => {
 
     fetchFeedback();
   }, []);
+   
+  // Fetch total user count
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      try {
+        const studentsRef = collection(db, 'students');
+        const snapshot = await getDocs(studentsRef);
+        setUserCount(snapshot.size);
+      } catch (error) {
+        console.error("Error fetching user count:", error);
+        setError("Failed to load user count");
+      } finally {
+        setLoadingUserCount(false);
+      }
+    };
 
-  // Sample data (other sections remain the same)
+    fetchUserCount();
+  }, []);
+
+  // Fetch today's logins
+  useEffect(() => {
+    const fetchTodayLogins = async () => {
+      try {
+        setLoadingTodayLogins(true);
+        
+        // Get today's start and end times
+        const todayStart = startOfToday();
+        const todayEnd = endOfToday();
+        
+        // Query students who have a lastLogin timestamp within today
+        const studentsRef = collection(db, 'students');
+        const q = query(
+          studentsRef,
+          where('lastLogin', '>=', todayStart),
+          where('lastLogin', '<=', todayEnd)
+        );
+        
+        const snapshot = await getDocs(q);
+        setTodayLogins(snapshot.size);
+      } catch (error) {
+        console.error("Error fetching today's logins:", error);
+        setError("Failed to load today's login count");
+      } finally {
+        setLoadingTodayLogins(false);
+      }
+    };
+
+    fetchTodayLogins();
+  }, []);
+
+  // Sample data
   const metrics = [
-    { name: 'Total Users', value: '1,250', change: '5.4%', trend: 'up' },
-    { name: 'New Signups Today', value: '24', change: '12%', trend: 'up' },
-    { name: 'Active Sessions', value: '89', change: '3.2%', trend: 'down' },
-    { name: 'Pending Verifications', value: '7', change: '0%', trend: 'neutral' }
+    { 
+      name: 'Total Users', 
+      value: loadingUserCount ? <Loader2 className="animate-spin" /> : userCount.toLocaleString(),
+      icon: <Users className="h-5 w-5 text-blue-500" />
+    },
+    { 
+      name: 'New Signups Today', 
+      value: loadingTodayLogins ? <Loader2 className="animate-spin" /> : todayLogins.toLocaleString(), 
+      icon: <Activity className="h-5 w-5 text-green-500" />
+    }
+    
   ];
+
 
   const events = [
     { name: 'AI & ML Hackathon', date: 'June 1, 2025', status: 'Scheduled' },
@@ -144,12 +203,50 @@ const AdminDashboard = () => {
     { type: 'email', user: 'all registered users', time: 'Today at 9:00 AM' }
   ];
 
+
+  
   const quickActions = [
-    { name: 'Add New Admin', icon: <Plus size={18} /> },
-    { name: 'Send Announcement', icon: <Send size={18} /> },
-    { name: 'Generate Report', icon: <FileBarChart size={18} /> },
-    { name: 'Set Weekly Goal', icon: <Target size={18} /> }
+    {
+  name: 'User Details',
+  icon: <User size={18} />,  // 👤 Represents a single user
+  path: '/user-details'
+  },
+
+    { 
+      name: 'Announcements', 
+      icon: <Megaphone size={18} />, 
+      path: '/announcements' 
+    },
+    { 
+      name: 'Certificate Generator', 
+      icon: <Award size={18} />, 
+      path: '/generate-certificate' 
+    },
+    { 
+      name: 'Mail Generator', 
+      icon: <Mail size={18} />, 
+      path: '/email-Generator' 
+    }
   ];
+
+  // Function to handle navigation - INSIDE the component
+  const handleQuickAction = (path) => {
+    console.log('Navigating to:', path); // Debug log
+    
+    // Choose ONE of these based on your setup:
+    
+    // Option 1: If using React Router v6
+    // navigate(path);
+    
+    // Option 2: If using Next.js
+    // router.push(path);
+    
+    // Option 3: If using React Router v5
+    // history.push(path);
+    
+    // Option 4: Regular page navigation (fallback)
+    window.location.href = path;
+  };
 
   const tasks = [
     { name: 'Review user-uploaded documents', completed: false },
@@ -208,24 +305,24 @@ const AdminDashboard = () => {
         </p>
       </div>
 
-      {/* Dashboard Overview */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center text-gray-800">
-            <FileText className="mr-2" size={18} /> Dashboard Overview
-          </h2>
-          <button 
-            onClick={() => toggleSection('metrics')}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            {expandedSection === 'metrics' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
-        </div>
+      {/* Dashboard Overview - Compact Version */}
+<div className="bg-white rounded-xl shadow-sm w-200 h-40 p-4 mb-8 flex flex-col">
+  <div className="flex justify-between items-center mb-2">
+    <h2 className="text-md font-semibold flex items-center text-gray-800">
+      <FileText className="mr-2" size={16} /> Overview
+    </h2>
+    <button 
+      onClick={() => toggleSection('metrics')}
+      className="text-gray-500 hover:text-gray-700"
+    >
+      {expandedSection === 'metrics' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+    </button>
+  </div>
         
         {expandedSection !== 'metrics' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {metrics.map((metric, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded-lg">
+              <div key={index} className="bg-white-50 p-4 rounded-lg">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm text-gray-500">{metric.name}</p>
@@ -311,35 +408,37 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center text-gray-800">
-              <Shield className="mr-2" size={18} /> Quick Actions
-            </h2>
-            <button 
-              onClick={() => toggleSection('actions')}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {expandedSection === 'actions' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
+<div className="bg-white rounded-xl shadow-sm p-6">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-lg font-semibold flex items-center text-gray-800">
+      <Shield className="mr-2" size={18} /> Quick Actions
+    </h2>
+    <button 
+      onClick={() => toggleSection('actions')}
+      className="text-gray-500 hover:text-gray-700"
+    >
+      {expandedSection !== 'actions' ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+    </button>
+  </div>
+  
+  {expandedSection !== 'actions' && (
+    <div className="grid grid-cols-2 gap-3">
+      {quickActions.map((action, index) => (
+        <button 
+          key={index}
+          onClick={() => handleQuickAction(action.path)}
+          className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+        >
+          <div className="mb-2 p-2 bg-blue-100 text-blue-600 rounded-full">
+            {action.icon}
           </div>
-          
-          {expandedSection !== 'actions' && (
-            <div className="grid grid-cols-2 gap-3">
-              {quickActions.map((action, index) => (
-                <button 
-                  key={index}
-                  className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
-                >
-                  <div className="mb-2 p-2 bg-blue-100 text-blue-600 rounded-full">
-                    {action.icon}
-                  </div>
-                  <span className="text-sm font-medium">{action.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <span className="text-sm font-medium">{action.name}</span>
+        </button>
+      ))}
+    </div>
+  )}
+</div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -398,46 +497,6 @@ const AdminDashboard = () => {
                   <span>No feedback received yet</span>
                 </div>
               )}
-            </div>
-          )}
-        </div>
-
-        {/* Pending Tasks */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center text-gray-800">
-              <ClipboardList className="mr-2" size={18} /> Pending Tasks
-            </h2>
-            <button 
-              onClick={() => toggleSection('tasks')}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {expandedSection === 'tasks' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-          </div>
-          
-          {expandedSection !== 'tasks' && (
-            <div className="space-y-3">
-              {tasks.map((task, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      checked={task.completed}
-                      onChange={() => {}}
-                    />
-                    <span className={task.completed ? 'line-through text-gray-400' : 'text-gray-700'}>
-                      {task.name}
-                    </span>
-                  </div>
-                  {!task.completed && (
-                    <button className="text-sm text-blue-600 hover:text-blue-800">
-                      Start
-                    </button>
-                  )}
-                </div>
-              ))}
             </div>
           )}
         </div>

@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { auth } from '../Firebase/firebase.jsx';
+import { auth, db } from '../Firebase/firebase.jsx';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 const StudentLogin = () => {
   const navigate = useNavigate();
@@ -15,33 +16,83 @@ const StudentLogin = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
+    setSuccessMessage('');
     
     if (isLoginView) {
       // Login logic
       try {
         setLoading(true);
-        await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+        const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+        const user = userCredential.user;
+
+        // Check if user document exists, create if it doesn't
+        const userRef = doc(db, "students", user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          // Update lastLogin if document exists
+          await updateDoc(userRef, {
+            lastLogin: serverTimestamp(),
+          });
+        } else {
+          // Create document if it doesn't exist (fallback)
+          await setDoc(userRef, {
+            email: user.email,
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+            role: "student",
+            uid: user.uid
+          });
+        }
+
         navigate('/student-dashboard');
       } catch (error) {
+        console.error('Login error:', error);
         setAuthError(getFirebaseErrorMessage(error));
       } finally {
         setLoading(false);
       }
+
     } else {
-      // Signup logic
+      // Signup logic with Firestore integration
       const validationErrors = validateSignup();
       if (Object.keys(validationErrors).length === 0) {
         try {
           setLoading(true);
-          await createUserWithEmailAndPassword(auth, credentials.email, credentials.password);
-          // You might want to store the user's name in Firestore here
+          // Create user account
+          const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            credentials.email, 
+            credentials.password
+          );
+          
+          // Create user document in Firestore
+          await setDoc(doc(db, "students", userCredential.user.uid), {
+            name: credentials.name,
+            email: credentials.email,
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+            role: "student",
+            uid: userCredential.user.uid
+          });
+
+          // Show success message and switch to login view
+          setSuccessMessage('Account created successfully! Please sign in.');
           setIsLoginView(true);
-          setCredentials({...credentials, password: '', confirmPassword: ''});
+          setCredentials({
+            email: credentials.email, // Keep email for convenience
+            password: '',
+            name: '',
+            confirmPassword: ''
+          });
+          
         } catch (error) {
+          console.error('Signup error:', error);
           setAuthError(getFirebaseErrorMessage(error));
         } finally {
           setLoading(false);
@@ -59,22 +110,29 @@ const StudentLogin = () => {
       case 'auth/user-not-found':
         return 'No account found with this email';
       case 'auth/wrong-password':
-        return 'Incorrect password';
+      case 'auth/invalid-credential':
+        return 'Incorrect email or password';
       case 'auth/email-already-in-use':
         return 'Email already in use';
       case 'auth/weak-password':
         return 'Password should be at least 6 characters';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your connection.';
       default:
-        return 'Login failed. Please try again.';
+        console.error('Unhandled auth error:', error);
+        return 'Authentication failed. Please try again.';
     }
   };
 
   const validateSignup = () => {
     const newErrors = {};
-    if (!credentials.name) newErrors.name = 'Name is required';
-    if (!credentials.email) newErrors.email = 'Email is required';
+    if (!credentials.name.trim()) newErrors.name = 'Name is required';
+    if (!credentials.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^\S+@\S+\.\S+$/.test(credentials.email)) newErrors.email = 'Email is invalid';
     if (!credentials.password) newErrors.password = 'Password is required';
-    if (credentials.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    else if (credentials.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (credentials.password !== credentials.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
@@ -86,6 +144,13 @@ const StudentLogin = () => {
     setIsLoginView(!isLoginView);
     setErrors({});
     setAuthError('');
+    setSuccessMessage('');
+    // Clear password fields when toggling
+    setCredentials({
+      ...credentials,
+      password: '',
+      confirmPassword: ''
+    });
   };
 
   const handleInputChange = (e) => {
@@ -94,6 +159,13 @@ const StudentLogin = () => {
       ...credentials,
       [name]: value
     });
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
   return (
@@ -114,6 +186,13 @@ const StudentLogin = () => {
           </p>
         </div>
 
+        {/* Success message */}
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            {successMessage}
+          </div>
+        )}
+
         {/* Error message */}
         {authError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -130,11 +209,10 @@ const StudentLogin = () => {
                 <input 
                   type="text" 
                   name="name"
-                  placeholder="" 
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  placeholder="John Doe" 
+                  className={`w-full p-3 pl-10 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                   value={credentials.name}
                   onChange={handleInputChange}
-                  required={!isLoginView}
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -153,10 +231,9 @@ const StudentLogin = () => {
                 type="email" 
                 name="email"
                 placeholder="student@example.com" 
-                className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className={`w-full p-3 pl-10 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                 value={credentials.email}
                 onChange={handleInputChange}
-                required
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -175,10 +252,9 @@ const StudentLogin = () => {
                 type="password" 
                 name="password"
                 placeholder="••••••••" 
-                className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className={`w-full p-3 pl-10 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                 value={credentials.password}
                 onChange={handleInputChange}
-                required
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -197,10 +273,9 @@ const StudentLogin = () => {
                   type="password" 
                   name="confirmPassword"
                   placeholder="••••••••" 
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className={`w-full p-3 pl-10 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
                   value={credentials.confirmPassword}
                   onChange={handleInputChange}
-                  required={!isLoginView}
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">

@@ -1,12 +1,36 @@
 import { useNavigate } from 'react-router-dom';
+import { auth, db } from '../Firebase/firebase'; // Import your Firebase config
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simply redirect without validation
-    navigate('/admin-dashboard');
+    const email = e.target.elements[0].value;
+    const password = e.target.elements[1].value;
+
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Create user document in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
+        email: user.email,
+        createdAt: new Date(),
+        role: 'admin', // Add admin role
+        // other user data
+      });
+
+      // Redirect to admin dashboard
+      navigate('/admin-dashboard');
+    } catch (error) {
+      console.error("Error creating user:", error);
+      // Handle errors (show to user)
+    }
   };
 
   return (
@@ -34,7 +58,8 @@ const AdminLogin = () => {
                 type="text" 
                 placeholder="admin@example.com" 
                 className="w-full p-4 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                defaultValue="admin@example.com" // Set default value
+                defaultValue="admin@example.com"
+                required
               />
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <svg className="h-6 w-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
@@ -51,7 +76,9 @@ const AdminLogin = () => {
                 type="password" 
                 placeholder="••••••••" 
                 className="w-full p-4 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                defaultValue="password" // Set default value
+                defaultValue="password"
+                required
+                minLength="6"
               />
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <svg className="h-6 w-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">

@@ -1,78 +1,102 @@
 import { useState, useRef, useEffect } from 'react';
-import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut,MessageSquare } from "lucide-react";
-import { db } from '../Firebase/firebase.jsx'; // Your Firebase config file
-import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
-import { FiDownload } from "react-icons/fi";
+import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut, MessageSquare,X } from "lucide-react";
+import { db, auth } from '../Firebase/firebase.jsx'; // Your Firebase config file
+import { collection, query, where, getDocs, orderBy, limit, Timestamp, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { FiMessageCircle } from "react-icons/fi";
+import { Clock, MapPin } from 'lucide-react';
 
-const StudentDocumentList = () => {
-  const [documents, setDocuments] = useState([]);
-
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      const docsRef = collection(db, "documents");
-      const snapshot = await getDocs(docsRef);
-      const docsData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setDocuments(docsData);
-    };
-
-    fetchDocuments();
-  }, []);
-
+const FeedbackCard = () => {
+  const navigate = useNavigate();
+  const handleRedirect = () => {
+    navigate("/feedback");
+  };
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Available Documents</h2>
-      <ul className="space-y-3">
-        {documents.map((doc) => (
-          <li
-            key={doc.id}
-            className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between"
+    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-2xl shadow-xl p-5 border-2 border-transparent bg-clip-padding hover:shadow-2xl transition-all duration-300 w-full relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-full opacity-20 translate-y-12 -translate-x-12"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center mb-6">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-full mr-4 shadow-lg">
+            <FiMessageCircle className="text-white text-2xl" />
+          </div>
+          <div>
+            <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Share Your Feedback
+            </h3>
+            <p className="text-gray-600 mt-1">Your voice shapes our journey forward</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="space-y-6">
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-xl p-5 text-white text-center shadow-lg -mt-8">
+          <h4 className="text-2xl font-bold mb-2">Ready to Share Your Thoughts?</h4>
+          <p className="mb-4 opacity-90">Join thousands of users who are helping shape the future of our platform</p>
+          <button
+            onClick={handleRedirect}
+            className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 inline-flex items-center space-x-2"
           >
-            <div>
-              <p className="font-medium">{doc.title}</p>
-              <span className="text-sm text-gray-500">{doc.fileName}</span>
-            </div>
-            <a
-              href={doc.fileURL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center text-blue-600 hover:underline"
-            >
-              <FiDownload className="mr-1" /> Download
-            </a>
-          </li>
-        ))}
-      </ul>
+            <FiMessageCircle className="text-lg" />
+            <span>Give Feedback Now</span>
+          </button>
+          <p className="text-xs mt-3 opacity-75">Takes less than 2 minutes • Your privacy is protected</p>
+        </div>
+      </div>
     </div>
   );
 };
 
-
-
-// Reusable Components (define these first)
-const StatCard = ({ icon, title, value, trend, color }) => {
-  const colors = {
-    purple: 'bg-purple-100 text-purple-600',
-    yellow: 'bg-amber-100 text-amber-600',
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-emerald-100 text-emerald-600'
-  };
+const FloatingChatWidget = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between">
-        <div className={`p-3 rounded-lg ${colors[color]}`}>
-          {icon}
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-gray-500">{trend}</p>
-        </div>
+    <>
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          {isOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <MessageSquare className="w-6 h-6" />
+          )}
+        </button>
       </div>
-      <p className="mt-3 text-sm font-medium text-gray-700">{title}</p>
-    </div>
+
+      {isOpen && (
+        <div className="fixed bottom-20 right-6 z-40 w-80 bg-white rounded-xl shadow-xl border border-gray-200 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="p-4">
+            <div className="flex items-start gap-3 p-3 hover:bg-blue-50 rounded-lg transition-colors">
+              <div className="bg-blue-100 p-2 rounded-full mt-1">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <a
+                  href="/chat"
+                  onClick={() => setIsOpen(false)}
+                  className="block"
+                >
+                  <h3 className="font-semibold text-gray-900">Quick Chat with Classmates</h3>
+                  <p className="text-sm text-gray-600 mt-1">Get instant help or discuss course projects</p>
+                </a>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -97,42 +121,6 @@ const DeadlineItem = ({ title, date, daysLeft, progress, course }) => (
   </div>
 );
 
-const ResourceItem = ({ title, type, duration, progress, icon }) => (
-  <div className="p-3 hover:bg-gray-50 rounded-lg transition">
-    <div className="flex items-start gap-3">
-      <div className="p-2 bg-gray-100 rounded-lg text-gray-600">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <h3 className="font-medium">{title}</h3>
-        <p className="text-xs text-gray-500">{type} • {duration}</p>
-        <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-          <div
-            className="bg-emerald-500 h-1.5 rounded-full"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-      </div>
-      <button className="text-emerald-500 hover:text-emerald-700">
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  </div>
-);
-
-const AchievementItem = ({ title, description, date, badgeColor }) => (
-  <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition">
-    <div className={`px-2 py-1 text-xs rounded-full ${badgeColor}`}>
-      {title}
-    </div>
-    <div className="flex-1">
-      <p className="text-sm">{description}</p>
-      <p className="text-xs text-gray-500 mt-1">{date}</p>
-    </div>
-  </div>
-);
-
-// Notification Card Component - FIXED: moved up to avoid duplication
 const NotificationCard = ({ type, title, message, time, status }) => {
   const typeStyles = {
     high: {
@@ -174,40 +162,198 @@ const NotificationCard = ({ type, title, message, time, status }) => {
 const StudentDashboard = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [studentData, setStudentData] = useState({
-    name: "Alex Johnson",
-    email: "alex.johnson@university.edu",
+    name: "Loading...",
+    email: "Loading...",
     profileImage: null,
-    role: "Student" // Added role to avoid undefined
+    role: "student",
+    id: null,
+    nim: null,
+    uid: null
   });
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
   const profileRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const navigate = useNavigate();
 
-  // FIXED: Improved notification fetching
+  // Firebase Authentication State Observer
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log("User authenticated:", user.uid);
+        setCurrentUser(user);
+        await fetchStudentData(user.uid);
+      } else {
+        console.log("User not authenticated");
+        setCurrentUser(null);
+        setAuthError("User not authenticated");
+        // Optionally redirect to login
+        // navigate('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Fetch student data from Firestore
+  const fetchStudentData = async (uid) => {
+    try {
+      console.log("Fetching student data for UID:", uid);
+      const studentDocRef = doc(db, "students", uid);
+      const studentDoc = await getDoc(studentDocRef);
+      
+      if (studentDoc.exists()) {
+        const data = studentDoc.data();
+        console.log("Student data fetched:", data);
+        
+        setStudentData({
+          name: data.name || data.displayName || "Unknown User",
+          email: data.email || currentUser?.email || "No email",
+          profileImage: data.profileImage || data.photoURL || null,
+          role: data.role || "student",
+          id: uid,
+          nim: data.nim || data.studentId || null,
+          uid: uid,
+          createdAt: data.createdAt,
+          lastLogin: data.lastLogin
+        });
+        
+        // Update last login timestamp
+        await updateDoc(studentDocRef, {
+          lastLogin: Timestamp.now()
+        });
+      } else {
+        console.log("No student document found, creating default data");
+        // Create a default student document if it doesn't exist
+        const defaultData = {
+          name: currentUser?.displayName || "New Student",
+          email: currentUser?.email || "No email",
+          role: "student",
+          uid: uid,
+          createdAt: Timestamp.now(),
+          lastLogin: Timestamp.now()
+        };
+        
+        await setDoc(studentDocRef, defaultData);
+        setStudentData({
+          ...defaultData,
+          id: uid,
+          profileImage: null,
+          nim: null
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      setAuthError("Failed to load student data");
+    }
+  };
+
+  // Event registration handler
+  const handleRegister = async (eventId) => {
+    if (!currentUser) {
+      alert("Please log in to register for events");
+      return;
+    }
+
+    try {
+      const registrationRef = doc(db, "registrations", `${currentUser.uid}_${eventId}`);
+      const registrationSnap = await getDoc(registrationRef);
+      
+      if (registrationSnap.exists()) {
+        alert("You're already registered for this event!");
+        return;
+      }
+
+      await setDoc(registrationRef, {
+        eventId,
+        studentId: currentUser.uid,
+        studentName: studentData.name,
+        studentEmail: studentData.email,
+        studentNim: studentData.nim,
+        registeredAt: Timestamp.now(),
+        registrationStatus: "confirmed"
+      });
+
+      await updateDoc(doc(db, "events", eventId), {
+        registrationCount: increment(1),
+        lastUpdated: Timestamp.now()
+      });
+
+      setEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === eventId
+            ? { 
+                ...event, 
+                registrationCount: (event.registrationCount || 0) + 1,
+                isRegistered: true 
+              }
+            : event
+        )
+      );
+
+      const event = events.find(e => e.id === eventId);
+      alert(`Successfully registered for ${event?.title}!`);
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert(`Registration failed: ${error.message}`);
+    }
+  };
+
+  // Fetch events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        const today = new Date().toISOString().split('T')[0];
+        
+        const q = query(
+          collection(db, "events"),
+          where("date", ">=", today),
+          orderBy("date", "asc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        const eventsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          formattedDate: formatFirestoreTimestamp(doc.data().date),
+          registrationCount: doc.data().registrationCount || 0
+        }));
+
+        setEvents(eventsData);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Fetch notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         setLoadingNotifications(true);
-        console.log("Fetching notifications...");
-
-        // Create a query against the notifications collection
-        // FIXED: Made query more flexible to catch more notifications
         const q = query(
           collection(db, 'notifications'),
-          orderBy('createdAt', 'desc'), // Newest first
-          limit(10) // Limit to 10 most recent
+          orderBy('createdAt', 'desc'),
+          limit(10)
         );
 
         const querySnapshot = await getDocs(q);
         const fetchedNotifications = [];
-        
-        console.log("Notifications query returned:", querySnapshot.size, "documents");
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log("Notification document:", doc.id, data);
-          
           fetchedNotifications.push({
             id: doc.id,
             title: data.title || 'Notification',
@@ -218,7 +364,6 @@ const StudentDashboard = () => {
           });
         });
 
-        console.log("Processed notifications:", fetchedNotifications);
         setNotifications(fetchedNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -230,36 +375,29 @@ const StudentDashboard = () => {
     fetchNotifications();
   }, []);
 
-  // FIXED: Improved timestamp handling
   const formatFirestoreTimestamp = (timestamp) => {
-    if (!timestamp) return "Just now";
+    if (!timestamp) return "Unknown date";
     
-    let date;
     try {
-      // Handle both Firestore Timestamp objects and serialized timestamps
-      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
-        date = timestamp.toDate();
-      } else if (timestamp.seconds) {
-        // Handle serialized Firestore timestamp
-        date = new Date(timestamp.seconds * 1000);
-      } else if (timestamp instanceof Date) {
-        date = timestamp;
-      } else if (typeof timestamp === 'string') {
-        date = new Date(timestamp);
-      } else {
-        return "Unknown time";
+      if (typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(timestamp).toLocaleDateString(undefined, options);
       }
       
-      const now = new Date();
-      const diffInSeconds = Math.floor((now - date) / 1000);
-
-      if (diffInSeconds < 60) return "Just now";
-      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return timestamp.toDate().toLocaleDateString(undefined, options);
+      }
+      
+      if (timestamp instanceof Date) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return timestamp.toLocaleDateString(undefined, options);
+      }
+      
+      return "Unknown date";
     } catch (error) {
-      console.error("Error formatting timestamp:", error, timestamp);
-      return "Unknown time";
+      console.error("Error formatting timestamp:", error);
+      return "Unknown date";
     }
   };
 
@@ -296,32 +434,74 @@ const StudentDashboard = () => {
     setStudentData({ ...studentData, email: e.target.value });
   };
 
-  const handleSignOut = () => {
-    // Clear authentication tokens from storage
-    localStorage.removeItem('authToken'); // Remove JWT or session token
-    localStorage.removeItem('userData');  // Remove any cached user data
-
-    // If using cookies:
-    // document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-    // Redirect to login page with full page reload to clear state
-    window.location.href = '/Student-login'; // Replace with your login route
-
-    // Close the profile dropdown
-    setIsProfileOpen(false);
-
-    // Optional: Add logout confirmation
-    console.log("User successfully signed out");
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setIsProfileOpen(false);
+      navigate('/login'); // Redirect to login page
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
-  // ... rest of your component code
+  const handleSaveProfile = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const studentDocRef = doc(db, "students", currentUser.uid);
+      await updateDoc(studentDocRef, {
+        name: studentData.name,
+        email: studentData.email,
+        profileImage: studentData.profileImage,
+        updatedAt: Timestamp.now()
+      });
+      
+      setIsProfileSettingsOpen(false);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile");
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Authentication error state
+  if (authError && !currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{authError}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Welcome, {studentData.name}
+            </h1>
             <p className="text-gray-600 mt-1">Track your progress and activities</p>
           </div>
 
@@ -364,20 +544,21 @@ const StudentDashboard = () => {
                       </button>
                     </div>
                     <div className="border-t border-gray-100 p-2">
-  <button
-    onClick={handleSignOut}
-    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-  >
-    <LogOut className="w-4 h-4" />
-    Sign out
-  </button>
-  <a 
-    href="/feedback" // Replace with your actual signup route
-    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
-<MessageSquare className="w-4 h-4" />
-  Feedback</a>
-</div>
-
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign out
+                      </button>
+                      <a 
+                        href="/feedback"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Feedback
+                      </a>
+                    </div>
                   </>
                 ) : (
                   <div className="p-4">
@@ -445,11 +626,18 @@ const StudentDashboard = () => {
                           <Mail className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
                         </div>
                       </div>
+
+                      {studentData.nim && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Student ID</label>
+                          <p className="text-sm text-gray-700">{studentData.nim}</p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-gray-100 text-right">
                       <button
-                        onClick={() => setIsProfileSettingsOpen(false)}
+                        onClick={handleSaveProfile}
                         className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
                       >
                         Save Changes
@@ -462,41 +650,9 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard
-            icon={<Award className="w-5 h-5" />}
-            title="Completed Courses"
-            value="12"
-            trend="+2 this month"
-            color="purple"
-          />
-          <StatCard
-            icon={<BadgeCheck className="w-5 h-5" />}
-            title="Earned Badges"
-            value="8"
-            trend="New: Web Master"
-            color="yellow"
-          />
-          <StatCard
-            icon={<FileText className="w-5 h-5" />}
-            title="Active Projects"
-            value="3"
-            trend="1 nearing deadline"
-            color="blue"
-          />
-          <StatCard
-            icon={<Users className="w-5 h-5" />}
-            title="Study Groups"
-            value="2"
-            trend="New members joined"
-            color="green"
-          />
-        </div>
-
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Notifications Panel - MOVED TO TOP */}
+          {/* Notifications Panel */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -527,12 +683,80 @@ const StudentDashboard = () => {
             ) : (
               !loadingNotifications && (
                 <div className="text-center py-8 text-gray-500">
-                  No notifications found. Check your database structure or connection.
+                  No notifications found.
                 </div>
               )
             )}
           </div>
+
+         
           
+          {/* Upcoming Events Section */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-blue-500" />
+                Upcoming Events
+              </h2>
+              <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                View all <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {loadingEvents ? (
+              <div className="flex justify-center py-4">
+                <span className="animate-spin">🌀</span>
+                <span className="ml-2">Loading events...</span>
+              </div>
+            ) : events.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {events.map((event) => (
+                  <div key={event.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                        <CalendarDays className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{event.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {event.time}
+                          </span>
+                          <span className="flex items-center gap-1 mt-1">
+                            <MapPin className="w-4 h-4" />
+                            {event.venue}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">{event.formattedDate}</p>
+                      </div>
+                    </div>
+                    {event.imageURL && (
+                      <img 
+                        src={event.imageURL} 
+                        alt={event.title}
+                        className="mt-3 rounded-lg w-full h-32 object-cover"
+                      />
+                    )}
+                    <div className="mt-4 flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        {event.registrationCount || 0} registered
+                      </span>
+                      <button
+                        onClick={() => handleRegister(event.id)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
+                      >
+                        Register Now
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No upcoming events scheduled</p>
+            )}
+          </div>
+
           {/* Upcoming Deadlines */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
@@ -569,77 +793,25 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Learning Resources */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-emerald-500" />
-                Recommended Resources
-              </h2>
-              <button className="text-sm text-emerald-600 hover:text-emerald-800 flex items-center">
-                Browse all <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <ResourceItem
-                title="Advanced React Patterns"
-                type="Video Course"
-                duration="8h 45m"
-                progress={65}
-                icon={<Code className="w-4 h-4" />}
-              />
-              <ResourceItem
-                title="Database Optimization"
-                type="E-book"
-                duration="120 pages"
-                progress={40}
-                icon={<FileText className="w-4 h-4" />}
-              />
-              <ResourceItem
-                title="UI/UX Fundamentals"
-                type="Interactive Tutorial"
-                duration="5 modules"
-                progress={20}
-                icon={<Users className="w-4 h-4" />}
-              />
-            </div>
-          </div>
-
           {/* Recent Achievements */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-500" />
-                Recent Achievements
-              </h2>
-              <button className="text-sm text-amber-600 hover:text-amber-800 flex items-center">
-                See all <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <AchievementItem
-                title="Top Performer"
-                description="Ranked in top 5% of Machine Learning course"
-                date="May 5, 2023"
-                badgeColor="bg-purple-100 text-purple-800"
-              />
-              <AchievementItem
-                title="Project Excellence"
-                description="Web App prototype received faculty commendation"
-                date="Apr 28, 2023"
-                badgeColor="bg-blue-100 text-blue-800"
-              />
-              <AchievementItem
-                title="Peer Mentor"
-                description="Recognized for helping classmates with React concepts"
-                date="Apr 15, 2023"
-                badgeColor="bg-green-100 text-green-800"
-              />
-            </div>
+            
+          {/* Feedback Section */}
+          <div className="lg:col-span-3">
+            <FeedbackCard />
+            
+             
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* ... all your existing content ... */}
+      
+      {/* Add the floating chat widget */}
+      <FloatingChatWidget />
+    </div>
+  </div>
+
           </div>
         </div>
       </div>
-    </div>
+    
   );
 };
 

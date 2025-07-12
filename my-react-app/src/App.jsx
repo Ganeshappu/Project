@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import WhyJoin from './components/WhyJoin';
 import Footer from './components/Footer';
@@ -9,18 +8,20 @@ import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import ManageStudents from './pages/ManageStudents';
-import Schedule from './pages/Schedule';
 import Announcements from './pages/Announcements';
 import CertificateGenerator from './components/CertificateGenerator'; 
 import Feedback from './pages/Feedback';
-import MailGenerator from './Email/MailGenerator'; // New import for the feedback page
+import MailGenerator from './Email/MailGenerator';
+import AdminEvents from './pages/AdminEvents';
+import ResourceUploader from './pages/ResourceUploader';
+import UserDetails from './pages/UserDetails';
+import ChatBox from './pages/ChatBox'; // Importing ResourceUploader component  
+// New import for the feedback page
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="font-sans min-h-screen flex flex-col">
-          <Navbar />
           <main className="flex-grow">
             <Routes>
               {/* Public routes */}
@@ -33,7 +34,8 @@ function App() {
               } />
               <Route path="/student-login" element={<StudentLogin />} />
               <Route path="/admin-login" element={<AdminLogin />} />
-               <Route path="/feedback" element={<Feedback />} /> {/* New route for feedback page */}
+               <Route path="/feedback" element={<Feedback />} />
+               <Route path="/chat" element={<ChatBox />} /> {/* New route for chat page */}
               {/* Protected student dashboard */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -41,9 +43,11 @@ function App() {
 
               {/* Admin Dashboard and Pages */}
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
-              <Route path="/manage-students" element={<ManageStudents />} />
-              <Route path="/schedule" element={<Schedule />} />
               <Route path="/announcements" element={<Announcements />} />
+              <Route path="/admin-events" element={<AdminEvents />} />
+              <Route path="/user-details" element={<UserDetails />} /> {/* New route for user details */}
+              {/* Resource Uploader and Certificate Generator */}
+              <Route path="/resource-uploader" element={<ResourceUploader />} /> {/* New route for resource uploader */}
               <Route path="/generate-certificate" element={<CertificateGenerator />} /> {/* New route for certificate generator */}
               <Route path="/email-generator" element={<MailGenerator />} /> {/* New route for mail generator */}
               {/* 404 Not Found */}
