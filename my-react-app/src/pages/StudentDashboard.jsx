@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { FiMessageCircle } from "react-icons/fi";
 import { Clock, MapPin } from 'lucide-react';
 
+
 const FeedbackCard = () => {
   const navigate = useNavigate();
   const handleRedirect = () => {
@@ -307,36 +308,38 @@ const StudentDashboard = () => {
   };
 
   // Fetch events
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoadingEvents(true);
-        const today = new Date().toISOString().split('T')[0];
-        
-        const q = query(
-          collection(db, "events"),
-          where("date", ">=", today),
-          orderBy("date", "asc")
-        );
 
-        const querySnapshot = await getDocs(q);
-        const eventsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          formattedDate: formatFirestoreTimestamp(doc.data().date),
-          registrationCount: doc.data().registrationCount || 0
-        }));
+useEffect(() => {
+  const fetchEvents = async () => {
+    try {
+      setLoadingEvents(true);
 
-        setEvents(eventsData);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      } finally {
-        setLoadingEvents(false);
-      }
-    };
+      // 🔄 Fetch all events, sorted by date (optional)
+      const q = query(
+        collection(db, "events"),
+        orderBy("date", "asc") // ✅ You can remove this if you don’t want sorting
+      );
 
-    fetchEvents();
-  }, []);
+      const querySnapshot = await getDocs(q);
+
+      const eventsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        formattedDate: formatFirestoreTimestamp(doc.data().date),
+        registrationCount: doc.data().registrationCount || 0
+      }));
+
+      setEvents(eventsData);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  fetchEvents();
+}, []);
+
 
   // Fetch notifications
   useEffect(() => {
@@ -551,13 +554,7 @@ const StudentDashboard = () => {
                         <LogOut className="w-4 h-4" />
                         Sign out
                       </button>
-                      <a 
-                        href="/feedback"
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        Feedback
-                      </a>
+                      
                     </div>
                   </>
                 ) : (

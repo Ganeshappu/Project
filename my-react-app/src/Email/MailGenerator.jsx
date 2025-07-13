@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import EmailService from '../Email/EmailService';
+import { usEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from  '../Firebase/firebase.jsx'
 
 const MailGenerator = () => {
   const [emailData, setEmailData] = useState({
@@ -105,15 +108,23 @@ Admin Team`,
   });
 
   // Mock student data - replace with actual data from your backend
-  useEffect(() => {
-    const mockStudents = [
-      { id: 1, name: 'John Doe', email: 'john@example.com' },
-      { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
-      { id: 3, name: 'Mike Johnson', email: 'mike@example.com' },
-      { id: 4, name: 'Sarah Wilson', email: 'sarah@example.com' }
-    ];
-    setStudents(mockStudents);
-  }, []);
+
+useEffect(() => {
+  const fetchStudents = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'students'));
+      const studentList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setStudents(studentList);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  fetchStudents();
+}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

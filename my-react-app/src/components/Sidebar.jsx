@@ -53,12 +53,7 @@ const Sidebar = () => {
       icon: <FiCalendar />,
       color: "green"
     },
-    {
-      path: "/resource-uploader",
-      label: "Resource Uploader",
-      icon: <FiUpload />,
-      color: "purple"
-    },
+    
     {
       path: "/user-details",
       label: "User Details",

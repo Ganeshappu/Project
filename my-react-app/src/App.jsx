@@ -13,7 +13,6 @@ import CertificateGenerator from './components/CertificateGenerator';
 import Feedback from './pages/Feedback';
 import MailGenerator from './Email/MailGenerator';
 import AdminEvents from './pages/AdminEvents';
-import ResourceUploader from './pages/ResourceUploader';
 import UserDetails from './pages/UserDetails';
 import ChatBox from './pages/ChatBox'; // Importing ResourceUploader component  
 // New import for the feedback page
@@ -47,7 +46,6 @@ function App() {
               <Route path="/admin-events" element={<AdminEvents />} />
               <Route path="/user-details" element={<UserDetails />} /> {/* New route for user details */}
               {/* Resource Uploader and Certificate Generator */}
-              <Route path="/resource-uploader" element={<ResourceUploader />} /> {/* New route for resource uploader */}
               <Route path="/generate-certificate" element={<CertificateGenerator />} /> {/* New route for certificate generator */}
               <Route path="/email-generator" element={<MailGenerator />} /> {/* New route for mail generator */}
               {/* 404 Not Found */}
