@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Megaphone, CheckCircle,CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut, MessageSquare,X } from "lucide-react";
+import { Megaphone, CheckCircle,CalendarDays, UserPlus,BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut, MessageSquare,X } from "lucide-react";
 import { db, auth } from '../Firebase/firebase.jsx'; // Your Firebase config file
 import { collection, query, where, getDocs, orderBy, limit, Timestamp, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
