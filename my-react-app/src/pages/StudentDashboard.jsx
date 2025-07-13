@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Megaphone, CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut, MessageSquare,X } from "lucide-react";
+import { Megaphone, CheckCircle,CalendarDays, BadgeCheck, BookOpen, User, ChevronRight, Award, FileText, Code, Users, ChevronDown, Image, Mail, Edit, Settings, LogOut, MessageSquare,X } from "lucide-react";
 import { db, auth } from '../Firebase/firebase.jsx'; // Your Firebase config file
 import { collection, query, where, getDocs, orderBy, limit, Timestamp, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -7,6 +7,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FiMessageCircle } from "react-icons/fi";
 import { Clock, MapPin } from 'lucide-react';
+import DevClubInsights from '../components/DevClubInsights'; // Adjust the path if needed
+
 
 
 const FeedbackCard = () => {
@@ -15,7 +17,7 @@ const FeedbackCard = () => {
     navigate("/feedback");
   };
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-2xl shadow-xl p-5 border-2 border-transparent bg-clip-padding hover:shadow-2xl transition-all duration-300 w-full relative overflow-hidden">
+<div className="w-[1280px] max-w-none bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-2xl shadow-xl p-5 border-2 border-transparent bg-clip-padding hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full opacity-20 -translate-y-16 translate-x-16"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-full opacity-20 translate-y-12 -translate-x-12"></div>
       
@@ -51,6 +53,7 @@ const FeedbackCard = () => {
     </div>
   );
 };
+
 
 const FloatingChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -723,82 +726,119 @@ useEffect(() => {
          
           
           {/* Upcoming Events Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-3">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-blue-500" />
-                Upcoming Events
-              </h2>
-              <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                View all <ChevronRight className="w-4 h-4" />
+<div className="bg-gradient-to-br from-slate-50 to-blue-50 p-8 rounded-2xl shadow-lg border border-slate-200 lg:col-span-2">
+  <div className="flex items-center justify-between mb-8">
+    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl">
+        <CalendarDays className="w-6 h-6 text-white" />
+      </div>
+      Upcoming Events
+    </h2>
+    <button className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
+      View all <ChevronRight className="w-4 h-4" />
+    </button>
+  </div>
+
+  {loadingEvents ? (
+    <div className="flex justify-center py-8">
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <span className="animate-spin text-2xl">🌀</span>
+        <span className="ml-3 text-slate-600 font-medium">Loading events...</span>
+      </div>
+    </div>
+  ) : events.length > 0 ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {events.map((event) => (
+        <div key={event.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+          {/* Header with gradient background */}
+          <div className="bg-gradient-to-r from-red-90 to-red-100 p-3 text-gray-800">
+            <div className="flex items-start gap-3">
+              <div className="bg-white/20 backdrop-blur-sm p-1 rounded-lg">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg leading-tight">{event.title}</h3>
+                <p className="text-grey/900 text-sm mt-1">{event.formattedDate}</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Event Image */}
+          {event.imageURL && (
+            <div className="relative">
+              <img 
+                src={event.imageURL} 
+                alt={event.title}
+                className="w-full h-40 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+          )}
+          
+          {/* Event Details */}
+          <div className="p-5">
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-2 text-slate-600">
+                <div className="bg-slate-100 p-1 rounded">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">{event.time}</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600">
+                <div className="bg-slate-100 p-1 rounded">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <span className="text-sm">{event.venue}</span>
+              </div>
+            </div>
+            
+            {/* Registration Info and Button - Fixed Version */}
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+<div className="w-1.5 h-1.5 bg-green-500 rounded-full ml-auto"></div>
+                <span className="text-sm text-slate-600 font-medium">
+                  {event.registrationCount || 0} registered
+                </span>
+              </div>
+              
+              <button
+                onClick={() => handleRegister(event.id)}
+                disabled={event.isRegistered}
+                className={`px-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
+                  event.isRegistered
+                    ? 'bg-green-50 text-green-700 border border-green-200 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md active:scale-95'
+                }`}
+              >
+                {event.isRegistered ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Registered</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    <span>Register</span>
+                  </>
+                )}
               </button>
             </div>
-
-            {loadingEvents ? (
-              <div className="flex justify-center py-4">
-                <span className="animate-spin">🌀</span>
-                <span className="ml-2">Loading events...</span>
-              </div>
-            ) : events.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {events.map((event) => (
-  <div key={event.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-    <div className="flex items-start gap-3">
-      <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
-        <CalendarDays className="w-5 h-5" />
-      </div>
-      <div>
-        <h3 className="font-semibold">{event.title}</h3>
-        <p className="text-sm text-gray-600 mt-1">
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {event.time}
-          </span>
-          <span className="flex items-center gap-1 mt-1">
-            <MapPin className="w-4 h-4" />
-            {event.venue}
-          </span>
-        </p>
-        <p className="text-xs text-gray-500 mt-2">{event.formattedDate}</p>
-      </div>
-    </div>
-    {event.imageURL && (
-      <img 
-        src={event.imageURL} 
-        alt={event.title}
-        className="mt-3 rounded-lg w-full h-32 object-cover"
-      />
-    )}
-    <div className="mt-4 flex justify-between items-center">
-      <span className="text-sm text-gray-600">
-        {event.registrationCount || 0} registered
-      </span>
-      <button
-        onClick={() => handleRegister(event.id)}
-        disabled={event.isRegistered}
-        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-          event.isRegistered
-            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
-        }`}
-      >
-        {event.isRegistered ? (
-          <span className="flex items-center gap-2">
-            <BadgeCheck className="w-4 h-4" />
-            Registered
-          </span>
-        ) : (
-          'Register Now'
-        )}
-      </button>
-    </div>
-  </div>
-))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No upcoming events scheduled</p>
-            )}
           </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-12">
+      <div className="bg-white rounded-xl p-8 shadow-sm max-w-md mx-auto">
+        <div className="bg-gradient-to-r from-slate-400 to-slate-500 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <CalendarDays className="w-8 h-8 text-white" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">No Events Scheduled</h3>
+        <p className="text-slate-500">Check back later for upcoming events</p>
+      </div>
+    </div>
+  )}
+</div>
 
           {/* Upcoming Deadlines */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -835,11 +875,12 @@ useEffect(() => {
               />
             </div>
           </div>
+          
 
-          {/* Recent Achievements */}
-            
           {/* Feedback Section */}
           <div className="lg:col-span-3">
+                        <DevClubInsights />
+</div>
             <FeedbackCard />
             
              
@@ -849,7 +890,7 @@ useEffect(() => {
       {/* Add the floating chat widget */}
       <FloatingChatWidget />
     </div>
-  </div>
+  
 
           </div>
         </div>

@@ -5,7 +5,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-md p-4 flex justify-between items-center">
       <div className="flex items-center gap-2">
-        <img src="\src\assets\logo.png" alt="Logo" className="w-8 h-8" />
+        <img src="https://static.vecteezy.com/system/resources/previews/005/503/271/non_2x/student-community-logo-template-this-design-use-book-people-and-hat-symbol-suitable-for-education-free-vector.jpg" alt="Logo" className="w-12 h-12" />
       </div>
       <div className="flex gap-4">
         <Link to="/student-login">
