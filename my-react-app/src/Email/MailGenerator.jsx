@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import EmailService from '../Email/EmailService';
-import { usEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from  '../Firebase/firebase.jsx'
+import { db } from '../Firebase/firebase.jsx';
 
 const MailGenerator = () => {
   const [emailData, setEmailData] = useState({
@@ -104,8 +103,157 @@ Admin Team`,
           <p>Best regards,<br>Admin Team</p>
         </div>
       `
-    }
+    },
+    // New templates below
+    assignment: {
+      subject: 'New Assignment: [Assignment Name]',
+      body: `Dear [Student Name],
+
+A new assignment has been posted for [Class Name]:
+
+Assignment: [Assignment Name]
+Due Date: [Due Date]
+Points: [Points]
+Description: [Brief description]
+
+You can find more details in the learning management system.
+
+Best regards,
+[Instructor Name]`,
+      html_body: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #7c3aed;">New Assignment: [Assignment Name]</h2>
+          <p>Dear <strong>[Student Name]</strong>,</p>
+          <p>A new assignment has been posted for <strong>[Class Name]</strong>:</p>
+          <div style="background-color: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <table style="width: 100%;">
+              <tr><td><strong>Assignment:</strong></td><td>[Assignment Name]</td></tr>
+              <tr><td><strong>Due Date:</strong></td><td>[Due Date]</td></tr>
+              <tr><td><strong>Points:</strong></td><td>[Points]</td></tr>
+              <tr><td><strong>Description:</strong></td><td>[Brief description]</td></tr>
+            </table>
+          </div>
+          <p>You can find more details in the learning management system.</p>
+          <p>Best regards,<br>[Instructor Name]</p>
+        </div>
+      `
+    },
+    feedback: {
+      subject: 'Feedback on Your [Assignment/Project Name]',
+      body: `Dear [Student Name],
+
+Thank you for submitting your [Assignment/Project Name]. Here's my feedback:
+
+Grade: [Grade]
+Strengths: [List strengths]
+Areas for Improvement: [List areas for improvement]
+Additional Comments: [Any additional comments]
+
+Please don't hesitate to reach out if you have any questions.
+
+Best regards,
+[Instructor Name]`,
+      html_body: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #9333ea;">Feedback on Your [Assignment/Project Name]</h2>
+          <p>Dear <strong>[Student Name]</strong>,</p>
+          <p>Thank you for submitting your <strong>[Assignment/Project Name]</strong>. Here's my feedback:</p>
+          <div style="background-color: #faf5ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <table style="width: 100%;">
+              <tr><td><strong>Grade:</strong></td><td>[Grade]</td></tr>
+              <tr><td><strong>Strengths:</strong></td><td>[List strengths]</td></tr>
+              <tr><td><strong>Areas for Improvement:</strong></td><td>[List areas for improvement]</td></tr>
+              <tr><td><strong>Additional Comments:</strong></td><td>[Any additional comments]</td></tr>
+            </table>
+          </div>
+          <p>Please don't hesitate to reach out if you have any questions.</p>
+          <p>Best regards,<br>[Instructor Name]</p>
+        </div>
+      `
+    },
+    event: {
+      subject: 'Upcoming Event: [Event Name]',
+      body: `Dear Students,
+
+We're excited to invite you to our upcoming event:
+
+Event: [Event Name]
+Date: [Date]
+Time: [Time]
+Location: [Location]
+Description: [Event description]
+
+Please RSVP by [RSVP Date] if you plan to attend.
+
+We hope to see you there!
+
+Best regards,
+Event Team`,
+      html_body: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #d97706;">Upcoming Event: [Event Name]</h2>
+          <p>Dear Students,</p>
+          <p>We're excited to invite you to our upcoming event:</p>
+          <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #d97706;">
+            <table style="width: 100%;">
+              <tr><td><strong>Event:</strong></td><td>[Event Name]</td></tr>
+              <tr><td><strong>Date:</strong></td><td>[Date]</td></tr>
+              <tr><td><strong>Time:</strong></td><td>[Time]</td></tr>
+              <tr><td><strong>Location:</strong></td><td>[Location]</td></tr>
+              <tr><td><strong>Description:</strong></td><td>[Event description]</td></tr>
+            </table>
+          </div>
+          <p>Please RSVP by <strong>[RSVP Date]</strong> if you plan to attend.</p>
+          <p>We hope to see you there!</p>
+          <p>Best regards,<br>Event Team</p>
+        </div>
+      `
+    },
+    
+    course_completion: {
+      subject: 'Congratulations on Completing [Course Name]!',
+      body: `Dear [Student Name],
+
+Congratulations on successfully completing [Course Name]!
+
+Your final grade is: [Grade]
+Certificate: [Certificate Link]
+
+We appreciate your hard work and dedication throughout the course. We hope you found the experience valuable.
+
+If you'd like to provide feedback about your experience, please complete our course evaluation:
+[Evaluation Link]
+
+Best wishes for your future endeavors!
+
+Sincerely,
+[Instructor Name]`,
+      html_body: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #065f46;">Congratulations on Completing [Course Name]!</h2>
+          <p>Dear <strong>[Student Name]</strong>,</p>
+          <p>Congratulations on successfully completing <strong>[Course Name]</strong>!</p>
+          <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <table style="width: 100%;">
+              <tr><td><strong>Final Grade:</strong></td><td>[Grade]</td></tr>
+              <tr><td><strong>Certificate:</strong></td><td><a href="[Certificate Link]">Download Certificate</a></td></tr>
+            </table>
+          </div>
+          <p>We appreciate your hard work and dedication throughout the course. We hope you found the experience valuable.</p>
+          <p>If you'd like to provide feedback about your experience, please complete our course evaluation:</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="[Evaluation Link]" style="display: inline-block; padding: 12px 24px; background-color: #065f46; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Complete Course Evaluation
+            </a>
+          </div>
+          <p>Best wishes for your future endeavors!</p>
+          <p>Sincerely,<br>[Instructor Name]</p>
+        </div>
+      `
+    },
+    
   });
+
 
   // Mock student data - replace with actual data from your backend
 

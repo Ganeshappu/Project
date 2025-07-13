@@ -12,8 +12,9 @@ import {
 
 // Import Firebase functions
 import { db } from '../Firebase/firebase'; // Adjust path as needed
-import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, where,onSnapshot   } from 'firebase/firestore';
 import { startOfToday, endOfToday } from 'date-fns';
+import { UserPlus, LogIn } from 'lucide-react';
 
 const AdminDashboardLayout = () => {
   return (
@@ -39,6 +40,9 @@ const AdminDashboard = () => {
   const [loadingUserCount, setLoadingUserCount] = useState(true);
   const [todayLogins, setTodayLogins] = useState(0);
   const [loadingTodayLogins, setLoadingTodayLogins] = useState(true);
+  const [activities, setActivities] = useState([]);
+const [loadingActivities, setLoadingActivities] = useState(true);
+const [errorActivities, setErrorActivities] = useState(null);
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -123,6 +127,74 @@ const AdminDashboard = () => {
 
     fetchFeedback();
   }, []);
+  // Fetch user activities
+useEffect(() => {
+  const fetchActivities = async () => {
+    try {
+      setLoadingActivities(true);
+      setErrorActivities(null);
+
+      // Query students collection (sorted by createdAt, newest first)
+      const studentsQuery = query(
+        collection(db, 'students'),
+        orderBy('createdAt', 'desc'),
+        limit(4) // Only fetch the 4 most recent students
+      );
+
+      const unsubscribe = onSnapshot(studentsQuery, (snapshot) => {
+        const activitiesData = [];
+
+        snapshot.forEach((doc) => {
+          const studentData = doc.data();
+          
+          // Add signup activity
+          activitiesData.push({
+            type: 'signup',
+            email: studentData.email,
+            displayName: studentData.name || studentData.email,
+            timestamp: studentData.createdAt,
+            userId: doc.id
+          });
+
+          // Add profile update if exists
+          if (studentData.lastUpdated) {
+            activitiesData.push({
+              type: 'profile',
+              displayName: studentData.name || studentData.email,
+              timestamp: studentData.lastUpdated,
+              userId: doc.id
+            });
+          }
+
+          // Add login activity if exists
+          if (studentData.lastLogin) {
+            activitiesData.push({
+              type: 'login',
+              displayName: studentData.name || studentData.email,
+              timestamp: studentData.lastLogin,
+              userId: doc.id
+            });
+          }
+        });
+
+        // Sort all activities by timestamp (newest first)
+        activitiesData.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+        
+        // Take only the 4 most recent activities
+        setActivities(activitiesData.slice(0, 4));
+      });
+
+      return () => unsubscribe(); // Cleanup on unmount
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      setErrorActivities(error.message);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  fetchActivities();
+}, []);
    
   // Fetch total user count
   useEffect(() => {
@@ -196,13 +268,6 @@ const AdminDashboard = () => {
     { name: 'Blockchain Summit', date: 'June 20, 2025', status: 'Pending' }
   ];
 
-  const activities = [
-    { type: 'signup', user: 'Ravi Kumar', time: '10 minutes ago' },
-    { type: 'profile', user: 'Anjali M.', time: '30 mins ago' },
-    { type: 'lockout', user: 'raj123', time: '1 hour ago' },
-    { type: 'email', user: 'all registered users', time: 'Today at 9:00 AM' }
-  ];
-
 
   
   const quickActions = [
@@ -248,12 +313,7 @@ const AdminDashboard = () => {
     window.location.href = path;
   };
 
-  const tasks = [
-    { name: 'Review user-uploaded documents', completed: false },
-    { name: 'Approve 3 event proposals', completed: false },
-    { name: 'Backup system database', completed: false },
-    { name: 'Moderate user comments', completed: false }
-  ];
+  
 
   const getActivityIcon = (type) => {
     switch(type) {
@@ -372,40 +432,66 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent User Activities */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center text-gray-800">
-              <Activity className="mr-2" size={18} /> Recent User Activities
-            </h2>
-            <button 
-              onClick={() => toggleSection('activities')}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {expandedSection === 'activities' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-          </div>
-          
-          {expandedSection !== 'activities' && (
-            <div className="space-y-4">
-              {activities.map((activity, index) => (
-                <div key={index} className="flex items-start pb-3 border-b border-gray-100 last:border-0">
-                  <div className="mt-1 mr-3">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {activity.type === 'signup' && <span>🆕 {activity.user} signed up</span>}
-                      {activity.type === 'profile' && <span>✏️ {activity.user} updated her profile</span>}
-                      {activity.type === 'lockout' && <span>🔒 Account lockout for user {activity.user}</span>}
-                      {activity.type === 'email' && <span>📧 Email sent to {activity.user}</span>}
-                    </p>
-                    <p className="text-sm text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Recent User Activities */}
+<div className="bg-white rounded-xl shadow-sm p-6">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-lg font-semibold flex items-center text-gray-800">
+      <Activity className="mr-2" size={18} /> Recent User Activities
+    </h2>
+    <button 
+      onClick={() => toggleSection('activities')}
+      className="text-gray-500 hover:text-gray-700"
+    >
+      {expandedSection === 'activities' ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+    </button>
+  </div>
+  
+  {expandedSection !== 'activities' && (
+    <div className="space-y-4">
+      {/* Loading state */}
+      {loadingActivities && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="animate-spin" size={20} />
         </div>
+      )}
+      
+      {/* Error state */}
+      {errorActivities && (
+        <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+          Failed to load activities: {errorActivities}
+        </div>
+      )}
+      
+      {/* Success state */}
+      {activities.map((activity, index) => (
+        <div key={index} className="flex items-start pb-3 border-b border-gray-100 last:border-0">
+          <div className="mt-1 mr-3">
+            {getActivityIcon(activity.type)}
+          </div>
+          <div>
+            <p className="font-medium">
+              {activity.type === 'signup' && <span>🆕 {activity.displayName || activity.email} signed up</span>}
+              {activity.type === 'profile' && <span>✏️ {activity.displayName} updated their profile</span>}
+              {activity.type === 'login' && <span>🔑 {activity.displayName} logged in</span>}
+              {activity.type === 'lockout' && <span>🔒 Account lockout for {activity.email}</span>}
+              {activity.type === 'email' && <span>📧 Email sent to {activity.email}</span>}
+            </p>
+            <p className="text-sm text-gray-500">
+              {activity.timestamp?.toDate().toLocaleString()}
+            </p>
+          </div>
+        </div>
+      ))}
+      
+      {/* Empty state */}
+      {!loadingActivities && !errorActivities && activities.length === 0 && (
+        <div className="text-gray-500 text-sm py-4 text-center">
+          No recent activities found
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
         {/* Quick Actions */}
 <div className="bg-white rounded-xl shadow-sm p-6">

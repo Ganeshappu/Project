@@ -257,55 +257,69 @@ const StudentDashboard = () => {
 
   // Event registration handler
   const handleRegister = async (eventId) => {
-    if (!currentUser) {
-      alert("Please log in to register for events");
+  if (!currentUser) {
+    alert("Please log in to register for events");
+    return;
+  }
+
+  try {
+    const registrationRef = doc(db, "registrations", `${currentUser.uid}_${eventId}`);
+    const registrationSnap = await getDoc(registrationRef);
+    
+    if (registrationSnap.exists()) {
+      alert("You're already registered for this event!");
       return;
     }
 
-    try {
-      const registrationRef = doc(db, "registrations", `${currentUser.uid}_${eventId}`);
-      const registrationSnap = await getDoc(registrationRef);
-      
-      if (registrationSnap.exists()) {
-        alert("You're already registered for this event!");
-        return;
-      }
+    // Optimistically update the UI
+    setEvents(prevEvents => 
+      prevEvents.map(event => 
+        event.id === eventId
+          ? { 
+              ...event, 
+              registrationCount: (event.registrationCount || 0) + 1,
+              isRegistered: true 
+            }
+          : event
+      )
+    );
 
-      await setDoc(registrationRef, {
-        eventId,
-        studentId: currentUser.uid,
-        studentName: studentData.name,
-        studentEmail: studentData.email,
-        studentNim: studentData.nim,
-        registeredAt: Timestamp.now(),
-        registrationStatus: "confirmed"
-      });
+    await setDoc(registrationRef, {
+      eventId,
+      studentId: currentUser.uid,
+      studentName: studentData.name,
+      studentEmail: studentData.email,
+      studentNim: studentData.nim,
+      registeredAt: Timestamp.now(),
+      registrationStatus: "confirmed"
+    });
 
-      await updateDoc(doc(db, "events", eventId), {
-        registrationCount: increment(1),
-        lastUpdated: Timestamp.now()
-      });
+    await updateDoc(doc(db, "events", eventId), {
+      registrationCount: increment(1),
+      lastUpdated: Timestamp.now()
+    });
 
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventId
-            ? { 
-                ...event, 
-                registrationCount: (event.registrationCount || 0) + 1,
-                isRegistered: true 
-              }
-            : event
-        )
-      );
+    const event = events.find(e => e.id === eventId);
+    alert(`Successfully registered for ${event?.title}!`);
 
-      const event = events.find(e => e.id === eventId);
-      alert(`Successfully registered for ${event?.title}!`);
-
-    } catch (error) {
-      console.error("Registration error:", error);
-      alert(`Registration failed: ${error.message}`);
-    }
-  };
+  } catch (error) {
+    console.error("Registration error:", error);
+    alert(`Registration failed: ${error.message}`);
+    
+    // Revert the optimistic update on error
+    setEvents(prevEvents => 
+      prevEvents.map(event => 
+        event.id === eventId
+          ? { 
+              ...event, 
+              registrationCount: Math.max(0, (event.registrationCount || 0) - 1),
+              isRegistered: false 
+            }
+          : event
+      )
+    );
+  }
+};
 
   // Fetch events
 
@@ -314,20 +328,34 @@ useEffect(() => {
     try {
       setLoadingEvents(true);
 
-      // 🔄 Fetch all events, sorted by date (optional)
+      // Fetch all events, sorted by date (optional)
       const q = query(
         collection(db, "events"),
-        orderBy("date", "asc") // ✅ You can remove this if you don’t want sorting
+        orderBy("date", "asc")
       );
 
       const querySnapshot = await getDocs(q);
 
-      const eventsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        formattedDate: formatFirestoreTimestamp(doc.data().date),
-        registrationCount: doc.data().registrationCount || 0
-      }));
+      const eventsData = [];
+      
+      for (const eventDoc of querySnapshot.docs) {
+        const eventData = {
+          id: eventDoc.id,
+          ...eventDoc.data(),
+          formattedDate: formatFirestoreTimestamp(eventDoc.data().date),
+          registrationCount: eventDoc.data().registrationCount || 0,
+          isRegistered: false // Default to false
+        };
+
+        // Check if current user is registered for this event
+        if (currentUser) {
+          const registrationRef = doc(db, "registrations", `${currentUser.uid}_${eventDoc.id}`);
+          const registrationSnap = await getDoc(registrationRef);
+          eventData.isRegistered = registrationSnap.exists();
+        }
+
+        eventsData.push(eventData);
+      }
 
       setEvents(eventsData);
     } catch (error) {
@@ -337,8 +365,14 @@ useEffect(() => {
     }
   };
 
-  fetchEvents();
-}, []);
+  // Only fetch events if currentUser is available
+  if (currentUser) {
+    fetchEvents();
+  }
+}, [currentUser]);
+
+  // Only fetch events if currentUser is available
+ 
 
 
   // Fetch notifications
@@ -708,46 +742,58 @@ useEffect(() => {
             ) : events.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {events.map((event) => (
-                  <div key={event.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
-                        <CalendarDays className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{event.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1 mt-1">
-                            <MapPin className="w-4 h-4" />
-                            {event.venue}
-                          </span>
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">{event.formattedDate}</p>
-                      </div>
-                    </div>
-                    {event.imageURL && (
-                      <img 
-                        src={event.imageURL} 
-                        alt={event.title}
-                        className="mt-3 rounded-lg w-full h-32 object-cover"
-                      />
-                    )}
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        {event.registrationCount || 0} registered
-                      </span>
-                      <button
-                        onClick={() => handleRegister(event.id)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-                      >
-                        Register Now
-                      </button>
-                    </div>
-                  </div>
-                ))}
+  <div key={event.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="flex items-start gap-3">
+      <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+        <CalendarDays className="w-5 h-5" />
+      </div>
+      <div>
+        <h3 className="font-semibold">{event.title}</h3>
+        <p className="text-sm text-gray-600 mt-1">
+          <span className="flex items-center gap-1">
+            <Clock className="w-4 h-4" />
+            {event.time}
+          </span>
+          <span className="flex items-center gap-1 mt-1">
+            <MapPin className="w-4 h-4" />
+            {event.venue}
+          </span>
+        </p>
+        <p className="text-xs text-gray-500 mt-2">{event.formattedDate}</p>
+      </div>
+    </div>
+    {event.imageURL && (
+      <img 
+        src={event.imageURL} 
+        alt={event.title}
+        className="mt-3 rounded-lg w-full h-32 object-cover"
+      />
+    )}
+    <div className="mt-4 flex justify-between items-center">
+      <span className="text-sm text-gray-600">
+        {event.registrationCount || 0} registered
+      </span>
+      <button
+        onClick={() => handleRegister(event.id)}
+        disabled={event.isRegistered}
+        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+          event.isRegistered
+            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed'
+            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+        }`}
+      >
+        {event.isRegistered ? (
+          <span className="flex items-center gap-2">
+            <BadgeCheck className="w-4 h-4" />
+            Registered
+          </span>
+        ) : (
+          'Register Now'
+        )}
+      </button>
+    </div>
+  </div>
+))}
               </div>
             ) : (
               <p className="text-gray-500 text-center py-4">No upcoming events scheduled</p>
