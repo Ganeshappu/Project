@@ -37,7 +37,11 @@ function App() {
                <Route path="/chat" element={<ChatBox />} /> {/* New route for chat page */}
               {/* Protected student dashboard */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/student-dashboard" element={<StudentDashboard />} />
+                <Route path="/student-dashboard" element={<StudentDashboard />}
+                 />
+              </Route>
+              <Route element={<ProtectedRoute />}>
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
               </Route>
 
               {/* Admin Dashboard and Pages */}
@@ -45,10 +49,8 @@ function App() {
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/admin-events" element={<AdminEvents />} />
               <Route path="/user-details" element={<UserDetails />} /> {/* New route for user details */}
-              {/* Resource Uploader and Certificate Generator */}
               <Route path="/generate-certificate" element={<CertificateGenerator />} /> {/* New route for certificate generator */}
               <Route path="/email-generator" element={<MailGenerator />} /> {/* New route for mail generator */}
-              {/* 404 Not Found */}
             </Routes>
           </main>
           <Footer />

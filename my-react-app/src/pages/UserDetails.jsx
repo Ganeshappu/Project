@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../Firebase/firebase';
+
 import { collection, getDocs } from 'firebase/firestore';
 import { FaUserGraduate, FaEnvelope, FaIdCard, FaUserTag, FaCalendarAlt, FaSignInAlt, FaSpinner } from 'react-icons/fa';
 
@@ -113,11 +114,15 @@ const UserDetails = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-1">No students found</h3>
             <p className="text-gray-500">There are currently no students registered in the system.</p>
+            
           </div>
+          
         )}
       </div>
     </div>
   );
 };
+        
+
 
 export default UserDetails;
