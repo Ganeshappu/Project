@@ -323,14 +323,7 @@ const CertificateGenerator = () => {
                   <p className="text-sm font-medium">{date ? new Date(date).toLocaleDateString() : 'Date'}</p>
                 </div>
               </div>
-              <div className="absolute bottom-4 left-4">
-                <QRCodeSVG 
-                  value={`https://yourdomain.com/verify?cert=${certificateId}`}
-                  size={80}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
+             
               <div 
                 className="absolute bottom-10 right-10 w-20 h-20 rounded-full border-2 flex items-center justify-center text-xs"
                 style={{ borderColor: selectedTemplate.accentColor, color: selectedTemplate.accentColor }}

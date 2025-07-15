@@ -95,17 +95,7 @@ const ChatBox = () => {
             <p className="text-xs text-slate-500">{messages.length} messages</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <Phone className="w-5 h-5 text-slate-600" />
-          </button>
-          <button className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <Video className="w-5 h-5 text-slate-600" />
-          </button>
-          <button className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <MoreVertical className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
+        
       </div>
 
       {/* Messages container */}

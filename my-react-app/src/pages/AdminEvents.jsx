@@ -241,21 +241,7 @@ const AdminEvents = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <FileText className="w-4 h-4" />
-                <span>Description</span>
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                required
-                rows="4"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                placeholder="Describe your event..."
-              />
-            </div>
+          
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
@@ -289,20 +275,7 @@ const AdminEvents = () => {
                 />
               </div>
               
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>Registration Deadline</span>
-                </label>
-                <input
-                  type="date"
-                  name="registrationDeadline"
-                  value={formData.registrationDeadline}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-              </div>
+              
             </div>
 
             <div className="flex items-center justify-between pt-4">
